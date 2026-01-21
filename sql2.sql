@@ -44,14 +44,6 @@ FROM Activity a
 JOIN first_date f ON a.player_id = f.player_id
 WHERE event_date = first_event_date
 
--- Задание 3 (Средний уровень)
--- Цель: Определить дату первой активности каждого игрока и устройство (device_id), которое он использовал в этот день.
--- Ожидаемый вывод: Таблица с колонками player_id, first_event_date, first_device_id.
-
-
--- Задание 3 (Средний уровень)
--- Цель: Определить дату первой активности каждого игрока и устройство (device_id), которое он использовал в этот день.
--- Ожидаемый вывод: Таблица с колонками player_id, first_event_date, first_device_id.
 
 
 -- Задание 4 (Средний уровень)
@@ -81,9 +73,6 @@ WHERE event_date - first_event_date = 1
 
 
 
--- Задание 5 (Средний/Сложный уровень)
--- Цель: Найти всех игроков, которые вернулись в игру на следующий день после своей первой активности (т.е. зашли и в первый, и во второй день). Под "следующим днем" подразумевается дата, следующая за first_event_date, независимо от того, были ли пропуски в дальнейшем.
--- Ожидаемый вывод: Таблица с колонкой player_id, содержащая только ID таких игроков.
 
 
 -- Задание 6 (Сложный уровень)
@@ -91,6 +80,33 @@ WHERE event_date - first_event_date = 1
 -- Уточнение: Считайте, что если у игрока есть запись с event_date, в точности равной дате его первого входа + 7 дней, то он "удержан".
 -- Ожидаемый вывод: Одно число retention_rate, округленное до 2 знаков после запятой (в процентах или долях, уточните в формулировке задачи).
 
+WITH first_date AS(
+    SELECT player_id, MIN(event_date) AS first_event_date
+    FROM Activity
+    GROUP BY player_id
+)
+
+SELECT ROUND(COUNT(*)* 1.0/(SELECT COUNT(DISTINCT player_id) FROM Activity), 2) AS retention_rate
+FROM Activity a JOIN first_date f ON f.player_id = a.player_id AND a.event_date - f.first_event_date = 7
+
+-- Задание 6 (Сложный уровень)
+-- Цель: Рассчитать "долю удержания" игроков на 7-й день. Доля удержания — это процент игроков, которые были активны (имели хотя бы одну сессию) ровно через 7 дней после своей первой активности (т.е. на first_event_date + 7).
+-- Уточнение: Считайте, что если у игрока есть запись с event_date, в точности равной дате его первого входа + 7 дней, то он "удержан".
+-- Ожидаемый вывод: Одно число retention_rate, округленное до 2 знаков после запятой (в процентах или долях, уточните в формулировке задачи).
+
+WITH first_date AS(
+    SELECT player_id, MIN(event_date) AS first_event_date
+    FROM Activity
+    GROUP BY player_id
+),
+players_count AS(
+    SELECT COUNT(DISTINCT player_id) AS all_players
+    FROM Activity
+)
+SELECT ROUND(COUNT(*)*1.0 / players_count.all_players,2) AS retention_rate
+FROM Acivity a
+    JOIN first_date f 
+    ON  a.player_id = f.player_id AND a.event_date - f.first_event_date=7
 
 
 -- Задание 7 (Сложный уровень, аналитика)
