@@ -116,15 +116,24 @@ FROM Acivity a
 -- Ожидаемый вывод: Таблица с колонками event_date, dau, new_players, отсортированная по event_date.
 -- Эти задания охватывают ключевые концепции SQL: агрегацию (COUNT, SUM, AVG), группировку (GROUP BY), фильтрацию (HAVING, подзапросы в WHERE), работу с датами, использование оконных функций (ROW_NUMBER(), FIRST_VALUE()) и сложную логику для аналитических расчетов.
 
-
-
--- Задание 7 (Сложный уровень, аналитика)
--- Цель: Для каждого календарного дня (даты из колонки event_date по всем игрокам) рассчитать:
--- Количество активных игроков в этот день (DAU - Daily Active Users).
--- Количество новых игроков в этот день (тех, для кого эта дата является first_event_date).
--- Ожидаемый вывод: Таблица с колонками event_date, dau, new_players, отсортированная по event_date.
--- Эти задания охватывают ключевые концепции SQL: агрегацию (COUNT, SUM, AVG), группировку (GROUP BY), фильтрацию (HAVING, подзапросы в WHERE), работу с датами, использование оконных функций (ROW_NUMBER(), FIRST_VALUE()) и сложную логику для аналитических расчетов.
-
+WITH first_date AS(
+    SELECT player_id, MIN(event_date) AS first_event_date
+    FROM Activity
+    GROUP BY player_id
+),
+    players_in_date(
+SELECT COUNT(*) AS players_per_date, event_date
+    FROM Acivity
+    GROUP BY event_date
+    ),
+    first_date_players (
+SELECT  first_event_date, COUNT(*) AS new_players_per_date
+    FROM first_date
+    GROUP BY first_event_date
+    )
+SELECT t1.event_date, t1.players_per_date, t2.new_players_per_date
+FROM players_in_date t1 JOIN
+    first_date_players t2 ON t1.event_date = t2.first_event_date
 
 -- Задание 8 (Сложный уровень, оконные функции)
 -- Цель: Для каждой записи активности (player_id, event_date) найти "максимальное накопленное" количество игр. Это означает: для каждой даты игрока нужно знать рекордное (максимальное) общее количество игр, которое он когда-либо набрал ко всем предыдущим датам включительно.
