@@ -181,6 +181,18 @@ FROM players_in_date t1 JOIN
 -- 2 из 3 игроков имеют ≥2 дня → 2/3 ≈ 0.67 
 -- +-----------+
 
+WITH all_dates AS(
+    SELECT COUNT(DISTINCT player_id) AS p1
+    FROM activity
+), 
+    not_one_days AS(
+        SELECT COUNT(player_id) AS p2
+        FROM activity
+        GROUP BY player_id
+        HAVING MIN(event_date)-MAX(event_date) <> 0
+    )
+SELECT ROUND( not_one_days.p2 * 1.0 / all_days.p1, 2) AS fraction
+FROM all_dates, not_one_days         
 
 -- Задача экзамена 2:
 -- - Найдите среднее количество игр (games_played), сыгранных игроками в их первый день входа.
@@ -206,4 +218,14 @@ FROM players_in_date t1 JOIN
 -- +--------+
 -- | 2.00   |  -- (5 + 1 + 0) / 3 = 2.00
 -- +--------+
+
+WITH first_date AS(
+    SELECT player_id,
+        MIN(event_date) AS first_event_date
+    FROM Activity
+    GROUP BY player_id
+)
+SELECT ROUND(AVG(games_played),2) AS avg
+FROM Activity a 
+JOIN first_date f ON a.player_id= f.player_id AND a.event_date  = f.first_event_date
 
