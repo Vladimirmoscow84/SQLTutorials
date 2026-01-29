@@ -236,15 +236,91 @@ ORDER BY loan_date ASC;
 -- Вывести: жанр, количество книг
 -- Отсортировать по количеству (убывание)
 
+ВАРИАНТ БЕЗ CTE
+SELECT genre AS "Жанр",
+       COUNT(*) AS "Количество книг"
+FROM books
+GROUP BY "Жанр"
+ORDER BY "Количество книг" DESC;
+
+
+ВАРИАНТ С CTE
+WITH books_stats AS(
+    SELECT genre,
+            COUNT(*) AS book_count
+    FROM books
+    GROUP BY genre
+)
+SELECT 
+genre AS "Жанр",
+book_count AS "Количество книг"
+ FROM books_stats
+ORDER BY 2 DESC;
+
 
 --задача 3 легкая
 -- Сколько всего книг в таблице books?
 -- Вывести общее количество
 
+SELECT COUNT(*) AS Количество
+FROM books
+
 --задача 4 легкая
 -- Найти все выдачи за январь 2025 года
 -- Вывести: id выдачи, дату выдачи, дату возврата
 -- Отсортировать по дате выдачи
+
+SELECT
+    id AS "id выдачи",
+    loan_date AS "Дата выдачи",
+    return_date AS "Дата возврата"
+    FROM loans
+    WHERE loan_date BETWEEN '2025-01-01' AND  '2025-01-31'  --альтернативные варианты: WHERE loan_date >='2025-01-01' AND loan_date <= '2025-01-31'   -- WHERE YEAR(loan-date)= 2025 AND MONTH(loan_date) = 1
+    ORDER BY loan_date ASC;
+
+--задача средняя
+-- Найти читателей с премиум-подпиской, которые брали книги
+-- Вывести: имя читателя, количество взятых книг
+-- Отсортировать по количеству книг (убывание)
+
+без CTE
+SELECT 
+b.name AS "Имя читателя", 
+COUNT(l.id) AS "Количество взятых книг"
+FROM loans l 
+JOIN borrowers b ON borrower_id = b.id
+WHERE b.membership_type = "Premium"
+GROUP BY b.name
+ORDER BY 2 DESC;
+
+вариант с CTE
+WITH books_info AS(
+    SELECT b.name,
+           COUNT(l.id) AS taken_books
+    FROM loans l JOIN borrowers b
+        ON l.borrower_id = b.id
+WHERE b.membership_type = 'Premium'
+GROUP BY b.name, b.id
+
+)
+SELECT
+name AS 'Имя читателя',
+taken_books AS 'Количество взятых книг'
+FROM books_info
+ORDER BY 2 DESC;
+
+
+--задача средняя
+-- Найти топ-5 самых долгих выдач
+-- Вывести: название книги, имя читателя, срок выдачи (в днях)
+-- Отсортировать по сроку выдачи (убывание)
+
+--задача средняя
+-- В каком городе больше всего выдач?
+-- Вывести: город, количество выдач
+-- Отсортировать по количеству выдач (убывание)
+
+
 
 --задача 5 средняя
 -- Показать полную информацию о всех выдачах
