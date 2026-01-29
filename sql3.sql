@@ -159,7 +159,7 @@ WITH library_stats AS(
 FROM loans l 
     JOIN libraries lib ON l.library_code = lib.code
     JOIN books b ON l.book_id = b.id
-    GROUP BY lib.code, lib.name, lib.city, lib.manager, b.genre
+    GROUP BY lib.name, lib.city, lib.manager, b.genre
 ),
 averall_avg AS(
     SELECT 
@@ -214,7 +214,21 @@ ORDER BY l.loan_date ASC;
 
 
 ВАРИАНТ С CTE
-
+WITH book_info AS(
+    SELECT b.title,
+           l.loan_date,
+           br.name
+    FROM loans l 
+        JOIN books b ON l.book_id = b.id
+        JOIN borrower br ON l.borrower_id = br.id
+        WHERE b.genre = 'Classics'
+)
+SELECT 
+title AS название,
+loan_date AS дата выдачи,
+name AS имя читателя
+FROM book_info
+ORDER BY loan_date ASC;
 
 
 --задача 2В легкая агрегация
