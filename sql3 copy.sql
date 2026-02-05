@@ -234,26 +234,53 @@ SELECT id,
     WHERE loan_date BETWEEN '2025-01-01' AND '2025-01-31' (другой вариант: WHERE loan_date >='2025-01-01' AND loan_date <='2025-01-31')
     ORDER BY loan_date ASC;                                (другой вариант: WHERE YEAR(loan_date) = '2025' AND MONTH(loan_date) = '01')
 
---задача средняя
+--задача 5a средняя
 -- Найти читателей с премиум-подпиской, которые брали книги
 -- Вывести: имя читателя, количество взятых книг
 -- Отсортировать по количеству книг (убывание)
+без CTE
+SELECT reader_name AS "Имя читателя",
+       COUNT(borrowers_id) AS "Количество взятых книг" 
+       FROM ( 
+        SELECT bor.name AS reader_name,
+               l.borrower_id
+            FROM loans l
+                JOIN borrowers bor ON bor.id = l.borrower_id
+                WHERE bor.membership_type = 'Premium'
+    ) AS premium_loans
+    GROUP BY name_reader
+    ORDER BY COUNT(borrowers_id) DESC;
+
+вариантс с CTE
+WITH premium_readers AS(
+    SELECT b.id AS reader_id,
+           b.name AS reader_name,
+           COUNT(l.borrower_id) AS count_books
+    FROM loans l
+        JOIN borrowers b ON b.id = l.borrower_id
+   WHERE b.membership_type = 'Premium'
+   GROUP BY b.id, b.name
+)
+SELECT reader_name,
+       count_books
+       FROM premium_readers
+ORDER BY count_books DESC;
 
 
 
---задача средняя
+--задача 5b средняя
 -- Найти топ-5 самых долгих выдач
 -- Вывести: название книги, имя читателя, срок выдачи (в днях)
 -- Отсортировать по сроку выдачи (убывание)
 
---задача средняя
+--задача 5c средняя
 -- В каком городе больше всего выдач?
 -- Вывести: город, количество выдач
 -- Отсортировать по количеству выдач (убывание)
 
 
 
---задача 5 средняя
+--задача 5d средняя
 -- Показать полную информацию о всех выдачах
 -- Вывести: название книги, имя библиотеки, имя читателя, даты
 -- Отсортировать по дате выдачи
