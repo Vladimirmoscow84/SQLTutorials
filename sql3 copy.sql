@@ -206,6 +206,12 @@ SELECT
 -- Вывести: жанр, количество книг
 -- Отсортировать по количеству (убывание)
 
+SELECT genre AS 'Жанр', 
+COUNT(*) AS 'Количество книг'
+FROM books
+GROUP BY genre
+ORDER BY COUNT(*) DESC;
+
 
 
 --задача 3 легкая
