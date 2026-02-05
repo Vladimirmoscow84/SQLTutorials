@@ -227,7 +227,12 @@ SELECT
 -- Вывести: id выдачи, дату выдачи, дату возврата
 -- Отсортировать по дате выдачи
 
-
+SELECT id,
+       loan_date,
+       return_date
+    FROM loans
+    WHERE loan_date BETWEEN '2025-01-01' AND '2025-01-31' (другой вариант: WHERE loan_date >='2025-01-01' AND loan_date <='2025-01-31')
+    ORDER BY loan_date ASC;                                (другой вариант: WHERE YEAR(loan_date) = '2025' AND MONTH(loan_date) = '01')
 
 --задача средняя
 -- Найти читателей с премиум-подпиской, которые брали книги
