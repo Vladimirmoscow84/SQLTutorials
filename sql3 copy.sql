@@ -155,6 +155,13 @@ INSERT INTO loans (id, book_id, library_code, borrower_id, loan_date, return_dat
 -- Вывести: название, автора
 -- Отсортировать по названию
 
+SELECT title as 'Название книги',
+       author AS 'Автор книги'
+FROM books
+WHERE genre = "Classics"
+ORDER BY title;
+
+
 
 --задача 2А легкая
 -- Найти все книги жанра 'Classics', у которых в названии есть слово "и"
