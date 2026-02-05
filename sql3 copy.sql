@@ -239,17 +239,13 @@ SELECT id,
 -- Вывести: имя читателя, количество взятых книг
 -- Отсортировать по количеству книг (убывание)
 без CTE
-SELECT reader_name AS "Имя читателя",
-       COUNT(borrowers_id) AS "Количество взятых книг" 
-       FROM ( 
-        SELECT bor.name AS reader_name,
-               l.borrower_id
-            FROM loans l
-                JOIN borrowers bor ON bor.id = l.borrower_id
-                WHERE bor.membership_type = 'Premium'
-    ) AS premium_loans
-    GROUP BY name_reader
-    ORDER BY COUNT(borrowers_id) DESC;
+SELECT b.name AS reader_name,
+       COUNT(l.borrower_id) AS count_books
+    FROM loans l 
+    JOIN borrowers ON l.borrower_id = b.id
+    WHERE b.membership_type = 'Premium'
+    GROUP BY b.id, b.name
+    ORDER BY COUNT(l.borrower_id) DESC;
 
 вариантс с CTE
 WITH premium_readers AS(
