@@ -242,7 +242,7 @@ SELECT id,
 SELECT b.name AS reader_name,
        COUNT(l.borrower_id) AS count_books
     FROM loans l 
-    JOIN borrowers ON l.borrower_id = b.id
+    JOIN borrowers b ON l.borrower_id = b.id
     WHERE b.membership_type = 'Premium'
     GROUP BY b.id, b.name
     ORDER BY COUNT(l.borrower_id) DESC;
