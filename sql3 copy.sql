@@ -300,6 +300,28 @@ LIMIT 5;
 -- Вывести: город, количество выдач
 -- Отсортировать по количеству выдач (убывание)
 
+без CTE:
+SELECT lib.city AS "Город",
+       COUNT(l.library_code) AS "Количество выдач"
+       FROM loans l
+       JOIN libraries lib ON l.library_code= lib.code
+       GROUP BY lib.city
+       ORDER BY 2 DESC;
+
+вариант с CTE:
+WITH city_loans AS(
+    SELECT 
+        lib.city AS city,
+        COUNT(l.library_code) AS loans_count
+        FROM loans l
+            JOIN libraries lib ON l.library_code = lib.code
+            GROUP BY lib.city
+)
+SELECT city,
+      loans_count
+      FROM city_loans
+ORDER BY loans_count DESC;
+
 
 
 --задача 5d средняя
