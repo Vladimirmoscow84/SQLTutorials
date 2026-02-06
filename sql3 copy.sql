@@ -381,7 +381,33 @@ SELECT genre,
 --задача 8 средняя ЦТЕ
 -- Найти книги, которые никогда не выдавались
 -- Вывести: название, автор, жанр
+WITH books_stats AS(
+    SELECT b.title,
+           b.author,
+           b.genre,
+           l.book_id
+        FROM loans l 
+         RIGHT JOIN books b ON l.book_id = b.id
+)
+SELECT title,
+       author,
+       genre
+FROM books_stats
+WHERE book_id IS NULL;
 
+WITH st_books AS(
+    SELECT b.title,
+        b.author,
+        b.genre,
+        l.book_id
+    FROM books b
+    LEFT JOIN loans l ON b.id = l.book_id
+)
+SELECT title,
+        author,
+        genre
+    FROM st_books
+    WHERE book_id is NULL;
 
 --задача 9 средняя ЦТЕ
 -- Найти читателей, которые брали больше книг, чем средний читатель
