@@ -184,7 +184,7 @@ FROM loans l
 WHERE b.genre = 'Classics'
 ORDER BY l.loan_date ASC;
 
-c CTE
+c CTE:
 WITH loans_classics AS(
     SELECT b.title AS book_title,
            l.loan_date,
@@ -238,7 +238,7 @@ SELECT id,
 -- Найти читателей с премиум-подпиской, которые брали книги
 -- Вывести: имя читателя, количество взятых книг
 -- Отсортировать по количеству книг (убывание)
-без CTE
+без CTE:
 SELECT b.name AS reader_name,
        COUNT(l.borrower_id) AS count_books
     FROM loans l 
@@ -247,7 +247,7 @@ SELECT b.name AS reader_name,
     GROUP BY b.id, b.name
     ORDER BY COUNT(l.borrower_id) DESC;
 
-вариантс с CTE
+вариантс с CTE:
 WITH premium_readers AS(
     SELECT b.id AS reader_id,
            b.name AS reader_name,
@@ -268,6 +268,32 @@ ORDER BY count_books DESC;
 -- Найти топ-5 самых долгих выдач
 -- Вывести: название книги, имя читателя, срок выдачи (в днях)
 -- Отсортировать по сроку выдачи (убывание)
+
+без CTE:
+SELECT b.title,
+        bor.name,
+        DATEDIFF(l.return_date, l.loan_date) AS loan_duration
+        FROM loans l 
+        JOIN books b ON l.book_id = b.id
+        JOIN borrowers bor  ON l.borrower_id = bor.id
+        ORDER BY loan_duration DESC 
+        LIMIT 5;
+
+вариант c CTE:
+WITH loan_longs AS (
+    SELECT b.title AS book_title,
+            bor.name AS client_name,
+            DATEDIFF(return_date, loan_date) AS loan_duration
+    FROM loans l 
+        JOIN books b ON l.book_id = b.id
+        JOIN borrowers bor ON l.borrower_id = bor.id
+)
+SELECT book_title,
+       client_name,
+       loan_duration 
+       FROM loan_longs
+ORDER BY loan_duration DESC
+LIMIT 5;
 
 --задача 5c средняя
 -- В каком городе больше всего выдач?
