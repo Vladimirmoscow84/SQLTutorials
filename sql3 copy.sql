@@ -328,6 +328,16 @@ ORDER BY loans_count DESC;
 -- Показать полную информацию о всех выдачах
 -- Вывести: название книги, имя библиотеки, имя читателя, даты
 -- Отсортировать по дате выдачи
+вариант без CTE:
+SELECT b.title AS "Название книги",
+       lib.name AS "Имя библиотеки",
+       bor.name AS "Имя читателя",
+       l.loan_date AS "Дата выдачи"
+       FROM loans l
+        JOIN books b ON b.id = l.book_id
+        JOIN libraries lib ON l.library_code = lib.code
+        JOIN borrowers bor ON l.borrower_id = bor.id
+ORDER BY l.loan_date;
 
 --задача 6 средняя
 -- Сколько выдач было в каждой библиотеке?
