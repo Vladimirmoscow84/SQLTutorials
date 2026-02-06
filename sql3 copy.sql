@@ -343,6 +343,29 @@ ORDER BY l.loan_date;
 -- Сколько выдач было в каждой библиотеке?
 -- Вывести: название библиотеки, город, количество выдач
 -- Отсортировать по количеству выдач (убывание)
+вариант без CTE:
+SELECT lib.name,
+       lib.city,
+       COUNT(l.library_code) AS loans_count
+FROM loans l
+JOIN libraries lib ON l.library_code = lib.code
+GROUP BY lib.name, lib.city
+ORDER BY loans_count DESC;
+
+вариант с CTE:
+WITH t1 AS(
+    SELECT lib.name AS lib_name,
+            lib.city AS lib_city,
+            COUNT(l.library_code) AS lib_count
+    FROM loans l 
+    JOIN libraries lib ON l.library_code = lib.code
+    GROUP BY lib.city, lib.name
+)
+SELECT lib_name,
+     lib_city,
+     lib_count
+FROM t1
+ORDER BY 3 DESC;
 
 --задача 7 средняя
 -- Найти жанры, у которых больше 2 книг в каталоге
