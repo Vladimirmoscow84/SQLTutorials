@@ -486,7 +486,15 @@ WITH book_stats AS(
     ORDER BY books_taken DESC;
 
 
---задача 10 
+--задача 10a
 -- Найти самый популярный день недели для выдачи книг
 -- Вывести: день недели, количество выдач
 -- Подсказка: DAYNAME(loan_date)
+
+SELECT 
+    DAYNAME(loan_date) AS week_day,
+    COUNT(*)
+    FROM loans
+    GROUP BY DAYNAME(loan_date)
+    ORDER BY COUNT(*) DESC
+    LIMIT 1;
