@@ -462,6 +462,29 @@ WITH lib_stats AS(
     WHERE books_taken > avg_taken
     ORDER BY books_taken DESC;
 
+--задача 9с средняя ЦТЕ
+-- Найти жанры книг, которые брали чаще среднего
+-- (чаще, чем в среднем берут книги любого жанра)
+-- Вывести: жанр, количество выдач этого жанра
+-- Отсортировать по количеству выдач (убывание)
+
+WITH book_stats AS(
+    SELECT b.genre,
+           COUNT(l.id) AS books_taken
+    FROM books b
+    JOIN loans l ON b.id = l.book_id
+    GROUP BY b.genre
+    ),
+    avg_loans AS(
+        SELECT AVG(books_taken) AS avg_taken
+        FROM book_stats
+    )
+    SELECT genre,
+           books_taken
+    FROM book_stats CROSS JOIN avg_loans
+    WHERE books_taken > avg_taken
+    ORDER BY books_taken DESC;
+
 
 --задача 10 
 -- Найти самый популярный день недели для выдачи книг
