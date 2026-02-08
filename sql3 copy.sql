@@ -435,7 +435,32 @@ SELECT
        books_taken
     FROM reader_stats CROSS JOIN avg_taken_book
     WHERE books_taken > avg_taken
-    ORDER BY books_taken DESC    
+    ORDER BY books_taken DESC;    
+
+--задача 9b средняя ЦТЕ
+-- Найти библиотеки, в которых было больше выдач, 
+-- чем в среднем по всем библиотекам
+-- Вывести: название библиотеки, город, количество выдач
+-- Отсортировать по количеству выдач (убывание)
+WITH lib_stats AS(
+    SELECT lib.code,
+            lib.name,
+            lib.city,
+            COUNT(l.id) AS books_taken
+    FROM libraries lib
+        LEFT JOIN loans l ON lib.code = l.library_code
+    GROUP BY lib.code, lib.name, lib.city
+),
+    avg_loans AS(
+        SELECT AVG(books_taken) AS avg_taken
+        FROM lib_stats
+    )
+    SELECT name,
+           city,
+           books_taken
+ FROM lib_stats CROSS JOIN avg_loans
+    WHERE books_taken > avg_taken
+    ORDER BY books_taken DESC;
 
 
 --задача 10 
