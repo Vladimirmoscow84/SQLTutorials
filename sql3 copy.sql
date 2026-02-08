@@ -381,6 +381,7 @@ SELECT genre,
 --задача 8 средняя ЦТЕ
 -- Найти книги, которые никогда не выдавались
 -- Вывести: название, автор, жанр
+first var:
 WITH books_stats AS(
     SELECT b.title,
            b.author,
@@ -395,6 +396,7 @@ SELECT title,
 FROM books_stats
 WHERE book_id IS NULL;
 
+second var:
 WITH st_books AS(
     SELECT b.title,
         b.author,
