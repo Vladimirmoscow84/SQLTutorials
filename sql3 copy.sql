@@ -490,7 +490,7 @@ WITH book_stats AS(
 -- Найти самый популярный день недели для выдачи книг
 -- Вывести: день недели, количество выдач
 -- Подсказка: DAYNAME(loan_date)
-
+1 var
 SELECT 
     DAYNAME(loan_date) AS week_day,
     COUNT(*)
@@ -498,3 +498,41 @@ SELECT
     GROUP BY DAYNAME(loan_date)
     ORDER BY COUNT(*) DESC
     LIMIT 1;
+
+ 2 var 
+ WITH week_stats AS(
+    SELECT DAYNAME(loan_date) AS week_day,
+           COUNT(*) AS week_loans
+    FROM loans
+    GROUP BY DAYNAME(loan_date)
+ )
+ SELECT week_day,
+        week_loans
+FROM week_stats 
+WHERE week_loans = (SELECT MAX(week_loans) FROM week_stats)
+ORDER BY week_loans;
+--задача 10b
+-- Найти самый популярный МЕСЯЦ для выдачи книг
+-- (в каком месяце чаще всего выдавали книги)
+-- Вывести: месяц (название), количество выдач
+-- Отсортировать по количеству выдач (убывание)
+-- Показать только самый популярный месяц
+ 1 var
+SELECT MONTHNAME(loan_date) AS month_name,
+       COUNT(*) AS loans_of_months
+FROM loans
+GROUP BY MONTHNAME(loan_date)
+ORDER BY loans_of_months DESC
+LIMIT 1;
+
+2 var
+WITH month_stats AS(
+    SELECT MONTHNAME(loan_date) AS month_loans,
+    COUNT(*) AS count_loans
+    FROM loans
+    GROUP BY MONTHNAME(loan_date)
+)
+SELECT month_loans,
+       count_loans
+FROM month_stats
+WHERE count_loans = (SELECT MAX(count_loans) FROM month_stats)
