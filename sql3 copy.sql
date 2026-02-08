@@ -411,10 +411,32 @@ SELECT title,
     FROM st_books
     WHERE book_id is NULL;
 
---задача 9 средняя ЦТЕ
+--задача 9a средняя ЦТЕ
 -- Найти читателей, которые брали больше книг, чем средний читатель
 -- Вывести: имя читателя, тип членства, количество взятых книг
 -- Отсортировать по количеству книг
+
+WITH reader_stats AS(
+    SELECT bor.id,
+        bor.name,
+        bor.membership_type,
+        COUNT(l.id) AS books_taken
+    FROM borrowers bor 
+    LEFT JOIN loans l ON bor.id = l.borrower_id
+    GROUP BY bor.id, bor.name, bor.membership_type
+),
+avg_taken_book AS(
+    SELECT AVG(books_taken) AS avg_taken
+    FROM reader_stats
+) 
+SELECT
+       name, 
+       membership_type,
+       books_taken
+    FROM reader_stats CROSS JOIN avg_taken_book
+    WHERE books_taken > avg_taken
+    ORDER BY books_taken DESC    
+
 
 --задача 10 
 -- Найти самый популярный день недели для выдачи книг
