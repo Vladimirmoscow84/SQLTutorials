@@ -536,3 +536,37 @@ SELECT month_loans,
        count_loans
 FROM month_stats
 WHERE count_loans = (SELECT MAX(count_loans) FROM month_stats)
+
+--Задача 11А (средняя)
+-- Для каждого читателя найти:
+-- 1. Общее количество взятых книг
+-- 2. Дата первой выдачи
+-- 3. Дата последней выдачи
+
+-- Вывести: 
+-- имя читателя, 
+-- количество книг,
+-- первую дату выдачи,
+-- последнюю дату выдачи
+
+-- Отсортировать по количеству книг (убывание)
+-- Показать только топ-5
+
+WITH reader_stats AS(
+    SELECT bor.id,
+           bor.name,
+           COUNT(l.id) AS books_count,
+           MIN(loan_date) AS first_loan,
+           MAX(loan_date) AS last_loan
+    FROM borrowers bor 
+    LEFT JOIN loans l ON bor.id = l.borrower_id
+    GROUP BY bor.id, bor.name
+)
+SELECT name,
+       books_count,
+       first_loan,
+       last_loan
+    FROM reader_stats
+    ORDER BY books_count DESC
+    LIMIT 5;
+
