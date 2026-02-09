@@ -570,7 +570,7 @@ SELECT name,
     ORDER BY books_count DESC
     LIMIT 5;
 
---Задача 11Б (средняя)
+--Задача 11Б (сложная)
 -- Для каждого читателя найти:
 -- 1. Общее количество взятых книг
 -- 2. Любимый жанр (который брал чаще всего)
@@ -585,3 +585,73 @@ SELECT name,
 
 -- Отсортировать по количеству книг (убывание)
 -- Показать только топ-5
+
+
+--Задача 12 (средняя)
+-- Найти топ-5 самых популярных книг
+-- (которые брали чаще всего)
+
+-- Вывести: 
+-- название книги, 
+-- автор,
+-- жанр,
+-- количество выдач
+
+-- Отсортировать по количеству выдач (убывание)
+-- Показать только топ-5
+c CTE:
+WITH books_stats AS(
+    SELECT b.id,
+           b.title,
+           b.author,
+           b.genre,
+           COUNT(l.book_id) AS book_count
+    FROM books b
+    LEFT JOIN loans l ON b.id = l.book_id
+    GROUP BY b.id, b.title, b.author, b.genre
+)
+SELECT title,
+       author,
+       genre,
+       book_count
+FROM books_stats
+ORDER BY book_count DESC
+LIMIT 5;
+
+without CTE:
+SELECT b.title,
+       b.author,
+       b.genre,
+       COUNT(l.book_id) AS books_count
+FROM books b 
+LEFT JOIN loans l ON b.id = l.book_id
+GROUP BY b.id, b.title, b.author, b.genre
+ORDER BY COUNT(l.book_id) DESC
+LIMIT 5;
+
+--Задача 13 (средняя)
+-- Для каждого жанра найти:
+-- 1. Общее количество книг в каталоге
+-- 2. Общее количество выдач книг этого жанра
+-- 3. Среднее количество выдач на одну книгу в жанре
+
+-- Вывести:
+-- жанр,
+-- количество книг в жанре,
+-- количество выдач,
+-- среднее выдач на книгу (округлить до 2 знаков)
+
+-- Отсортировать по среднему количеству выдач на книгу (убывание)
+
+ с CTE:
+
+без CTE:
+SELECT 
+    b.genre,
+    COUNT(DISTINCT b.id) AS total_books,
+    COUNT(l.id) AS total_loans,
+    ROUND(COUNT(l.id) * 1.0/COUNT(DISTINCT b.id), 2) AS avg_loans_book
+FROM books b 
+LEFT JOIN loans l ON b.id = l.book_id
+GROUP BY b.genre
+ORDER BY avg_loans_book DESC;
