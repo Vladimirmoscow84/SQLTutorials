@@ -644,14 +644,79 @@ LIMIT 5;
 -- Отсортировать по среднему количеству выдач на книгу (убывание)
 
  с CTE:
+ WITH genre_stats AS(
+    SELECT b.genre,
+            COUNT(DISTINCT b.id) AS total_books,
+            COUNT(l.id) AS count_loans,
+            ROUND(COUNT(l.id)*1.0/COUNT(DISTINCT b.id),2) AS avg_loans
+    FROM books b 
+    LEFT JOIN loans l ON b.id = l.book_id
+    GROUP BY b.genre            
+ )
+ SELECT genre,
+        total_books,
+        count_loans,
+        avg_loans
+FROM genre_stats
+ORDER BY avg_loans DESC;
 
 без CTE:
 SELECT 
     b.genre,
-    COUNT(DISTINCT b.id) AS total_books,
-    COUNT(l.id) AS total_loans,
-    ROUND(COUNT(l.id) * 1.0/COUNT(DISTINCT b.id), 2) AS avg_loans_book
-FROM books b 
-LEFT JOIN loans l ON b.id = l.book_id
+    COUNT(DISTINCT b.id) AS count_genre_boooks,
+    COUNT(l.id) AS all_loans_genre,
+    ROUND( COUNT(l.id) * 1.0 / COUNT(DISTINCT b.id),2) AS median_loans_by_genre
+FROM books b
+LEFT JOIN loans l ON l.book_id = b.id
 GROUP BY b.genre
-ORDER BY avg_loans_book DESC;
+ORDER BY median_loans_by_genre DESC;
+
+--Задача 14 (средняя)
+-- Проанализировать активность читателей по типам членства
+-- (Premium, Standard и т.д.)
+
+-- Для каждого типа членства найти:
+-- 1. Количество читателей
+-- 2. Общее количество взятых книг
+-- 3. Среднее количество книг на читателя
+-- 4. Процент читателей, которые брали книги
+
+-- Вывести:
+-- тип членства,
+-- количество читателей,
+-- общее количество книг,
+-- среднее книг на читателя (округлить до 1 знака),
+-- процент активных читателей (округлить до 1 знака)
+
+-- Отсортировать по среднему количеству книг (убывание)
+
+без CTE:
+SELECT bor.membership_type,
+       COUNT(bor.id) AS total_readers,
+       COUNT(l.id) AS total_books,
+       ROUND(COUNT(l.id)*1.0/COUNT(bor.id),1) AS avg_books,
+       ROUND(COUNT(CASE WHEN l.id IS NOT NULL THEN 1 END) *100.0/COUNT(bor.id), 1) AS percent_active_readers
+FROM borrowers bor
+LEFT JOIN loans l ON bor.id = l.borrower_id
+GROUP BY bor.membership_type
+ORDER BY avg_books DESC;
+
+c CTE:
+WITH readers_stats AS(
+    SELECT bor.membership_type,
+          COUNT(*) AS total_readers,
+          COUNT(l.id) AS total_books,
+          ROUND(COUNT(l.id)*1.0/COUNT(*),1) AS avg_books,
+          ROUND(COUNT(CASE WHEN l.id IS NOT NULL THEN 1 END) *100/COUNT(*),1) AS active_percent
+    FROM borrowers bor 
+    LEFT JOIN loans l ON bor.id = l.borrower_id
+    GROUP BY bor.membership_type
+)
+SELECT membership_type,
+       total_readers,
+       total_books,
+       avg_books,
+       active_percent
+FROM readers_stats
+ORDER BY avg_books DESC;
+
