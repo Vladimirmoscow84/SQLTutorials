@@ -314,11 +314,27 @@ ORDER BY 2 DESC;
 -- Найти топ-5 самых долгих выдач
 -- Вывести: название книги, имя читателя, срок выдачи (в днях)
 -- Отсортировать по сроку выдачи (убывание)
+SELECT b.title,
+       bor.name,
+       DATEDIFF(l.return_date, l.loan_date) AS loan_long
+FROM loans l
+    JOIN books b ON l.book_id=b.id
+    JOIN borrowers bor ON l.borrower_id = bor.id
+WHERE l.return_date IS NOT NULL
+ORDER BY loan_long DESC
+LIMIT 5;
 
 --задача средняя
 -- В каком городе больше всего выдач?
 -- Вывести: город, количество выдач
 -- Отсортировать по количеству выдач (убывание)
+
+SELECT lib.city,
+        COUNT(*) AS count_loans
+FROM loans l JOIN libraries lib ON l.library_code = lib.code
+GROUP BY lib.city
+ORDER BY count_loans DESC
+LIMIT 1;
 
 
 
