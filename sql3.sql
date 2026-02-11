@@ -148,6 +148,36 @@ INSERT INTO loans (id, book_id, library_code, borrower_id, loan_date, return_dat
  * Вывести ТОП-10
  */
 
+вариант с CTE:
+WITH avg_loans AS(
+    SELECT AVG(DATEDIFF(return_date, loan_date)) AS avg_loan
+    FROM loans
+    WHERE return_date IS NOT NULL
+), 
+    stats AS(
+        SELECT lib.name,
+               lib.city,
+               lib.manager,
+               b.genre,
+               COUNT(*) AS count_loans,
+               SUM(DATEDIFF(l.return_date, l.loan_date)) AS all_days
+        FROM loans l
+        JOIN libraries lib ON l.library_code = lib.code
+        JOIN books b ON l.book_id = b.id
+        WHERE l.return_date IS NOT NULL
+        GROUP BY lib.name, lib.city, lib.manager, b.genre
+    )
+
+SELECT name,
+       city,
+       manager,
+       genre,
+       count_loans,
+       all_days
+FROM stats CROSS JOIN avg_loans
+WHERE count_loans>1 AND all_days > avg_loan
+ORDER BY all_days DESC, name ASC, genre ASC
+LIMIT 10
 
 
 --задача 2 Легкая
