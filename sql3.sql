@@ -222,13 +222,18 @@ WHERE geenre = 'Classics' AND genre LIKE 'и %' OR genre LIKE '% и %' OR genre 
 ORDER BY author ASC;
 
 
-
-
 --задача 2Б Легкая с JOIN
 -- Найти все выдачи книг жанра 'Classics'
 -- Вывести: название книги, дата выдачи, имя читателя
 -- Отсортировать по дате выдачи
-
+SELECT b.title,
+       l.loan_date,
+       bor.name
+    FROM loans l
+    JOIN books b ON l.book_id = b.id
+    JOIN borrowers bor ON l.borrower_id = bor.id
+    WHERE b.genre  = 'Classics'
+    ORDER BY l.loan_date ASC;
 
 --задача 2В легкая агрегация
 -- Сколько всего книг каждого жанра?
