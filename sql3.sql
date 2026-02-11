@@ -240,12 +240,18 @@ SELECT b.title,
 -- Вывести: жанр, количество книг
 -- Отсортировать по количеству (убывание)
 
-
+SELECT genre,
+        COUNT(*)
+FROM books
+GROUP BY genre
+ORDER BY COUNT(*) DESC;
 
 
 --задача 3 легкая
 -- Сколько всего книг в таблице books?
 -- Вывести общее количество
+SELECT COUNT(*)
+FROM books;
 
 
 
@@ -253,34 +259,105 @@ SELECT b.title,
 -- Найти все выдачи за январь 2025 года
 -- Вывести: id выдачи, дату выдачи, дату возврата
 -- Отсортировать по дате выдачи
+SELECT id,
+       loan_date,
+       return_date
+FROM loans
+WHERE loan_date BETWEEN '2025-01-01' AND '2025-01-31'
+-- WHERE loan_date >='2025-01-01' AND loan_date <='2025-01-31'
+--WHERE YEAR(loan_date) = 2025 AND MONTH(loan_date) = 1
+ORDER BY loan_date ASC;
+
 
 --задача средняя
 -- Найти читателей с премиум-подпиской, которые брали книги
 -- Вывести: имя читателя, количество взятых книг
 -- Отсортировать по количеству книг (убывание)
+1 var:
+SELECT bor.name,
+       COUNT(l.borrower_id)
+FROM borrowers bor 
+LEFT JOIN loans l ON bor.id = l.borrower_id
+WHERE bor.membership_type = 'Premium'
+GROUP BY bor.id, bor.name
+ORDER BY COUNT(l.borrower_id) DESC;
 
-
+2 var CTE:
+WITH reader_stats AS(
+    SELECT bor.name,
+           COUNT(l.borrower_id) AS count_readers
+    FROM borrowers bor
+    LEFT JOIN loans l ON bor.id = l.borrower_id
+    WHERE bor.membership_type = 'Premium'
+    GROUP BY bor.id, bor.name
+)
+SELECT name,
+       count_readers
+FROM reader_stats
+ORDER BY count_readers DESC;
 
 
 --задача средняя
 -- Найти топ-5 самых долгих выдач
 -- Вывести: название книги, имя читателя, срок выдачи (в днях)
 -- Отсортировать по сроку выдачи (убывание)
+var 1:
+SELECT b.title,
+       bor.name,
+       DATEDIFF(return_date, loan_date) AS loan_duration     
+FROM loans l 
+LEFT JOIN books b ON l.book_id = b.id
+LEFT JOIN borrowers bor ON l.borrower_id = bor.id
+ WHERE return_date IS NOT NULL
+ORDER BY loan_duration DESC
+LIMIT 5;
 
+var 2 CTE:
+WITH stat_loans AS(
+    SELECT b.title,
+           bor.name,
+           DATEDIFF(l.return_date, l.loan_date) AS loan_duration
+FROM loans l
+LEFT JOIN books b ON l.book_id = b.id
+LEFT JOIN borrowers bor ON l.borrower_id = bor.id
+WHERE l.return_date IS NOT NULL
+)
+SELECT title,
+       name,
+       loan_duration
+FROM stat_loans
+ORDER BY loan_duration DESC
+LIMIT 5;
 
 --задача средняя
 -- В каком городе больше всего выдач?
 -- Вывести: город, количество выдач
 -- Отсортировать по количеству выдач (убывание)
-
-
-
+var 1:
+SELECT lib.city,
+       COUNT(*) AS count_loans
+FROM loans l 
+JOIN libraries lib ON l.library_code = lib.code
+GROUP BY lib.city
+ORDER BY count_loans DESC;
 
 
 --задача 5 средняя
 -- Показать полную информацию о всех выдачах
 -- Вывести: название книги, имя библиотеки, имя читателя, даты
 -- Отсортировать по дате выдачи
+SELECT b.title,
+       lib.name AS lib_name,
+       bor.name AS reader_name,
+       l.loan_date,
+       l.return_date
+FROM loans l
+JOIN books b ON l.book_id = b.id
+JOIN libraries lib ON l.library_code = lib.code
+JOIN borrowers bor ON l.borrower_id = bor.id
+ORDER BY l.loan_date ASC;
+
+
 
 --задача 6 средняя
 -- Сколько выдач было в каждой библиотеке?
