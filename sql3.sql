@@ -179,6 +179,27 @@ WHERE count_loans>1 AND all_days > avg_loan
 ORDER BY all_days DESC, name ASC, genre ASC
 LIMIT 10
 
+вариант без CTE:
+SELECT lib.name,
+       lib.city,
+       lib.manager,
+       b.genre,
+       COUNT(*) AS count_loans,
+       SUM(DATEDIFF(l.return_date, l.loan_date)) AS all_days
+FROM loans l
+JOIN libraries lib ON l.library_code = lib.code
+JOIN books b ON l.book_id = b.id
+WHERE l.return_date IS NOT NULL
+GROUP BY lib.name, lib.city, lib.manager, b.genre
+HAVING COUNT(*) > 1
+       AND SUM(DATEDIFF(l.return_date, l.loan_date)) > (
+        SELECT AVG(DATEDIFF(return_date,loan_date))
+        FROM loans 
+        WHERE return_date IS NOT NULL
+       )
+ORDER BY all_days DESC, lib.name ASC, b.genre ASC
+LIMIT 10
+
 
 --задача 2 Легкая
 -- Найти все книги жанра 'Classics'
