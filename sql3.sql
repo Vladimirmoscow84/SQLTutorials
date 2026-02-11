@@ -206,10 +206,22 @@ LIMIT 10
 -- Вывести: название, автора
 -- Отсортировать по названию
 
+SELECT title, author
+FROM books
+WHERE genre = 'Classics'
+ORDER BY title;
+
 
 --задача 2А легкая
 -- Найти все книги жанра 'Classics', у которых в названии есть слово "и"
 -- Вывести: название, автора, отсортировать по автору
+SELECT title,
+        author
+FROM books
+WHERE geenre = 'Classics' AND genre LIKE 'и %' OR genre LIKE '% и %' OR genre LIKE '% и' 
+ORDER BY author ASC;
+
+
 
 
 --задача 2Б Легкая с JOIN
