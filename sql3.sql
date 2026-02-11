@@ -148,87 +148,23 @@ INSERT INTO loans (id, book_id, library_code, borrower_id, loan_date, return_dat
  * Вывести ТОП-10
  */
 
-WITH library_stats AS(
-    SELECT
-    lib.name AS library_name,
-    lib.city,
-    lib.manager,
-    b.genre,
-    COUNT(l.id) AS loan_count,
-    SUM(DATEDIFF(l.return_date, l.loan_date)) AS total_loan_days
-FROM loans l 
-    JOIN libraries lib ON l.library_code = lib.code
-    JOIN books b ON l.book_id = b.id
-    GROUP BY lib.name, lib.city, lib.manager, b.genre
-),
-averall_avg AS(
-    SELECT 
-    AVG(total_loan_days) AS avg_loan_days
-    FROM library_stats
-)
 
-SELECT 
-    library_name,
-    city,
-    manager,
-    genre,
-    loan_count,
-    total_loan_days
-    FROM library_stats, averall_avg    -- аналог FROM library_stats CROSS JOIN averall_avg
-    WHERE loan_count>1 AND total_loan_days > avg_loan_days
-    ORDER BY
-    6 DESC, 1 ASC, 4 ASC
-    LIMIT 10
 
 --задача 2 Легкая
 -- Найти все книги жанра 'Classics'
 -- Вывести: название, автора
 -- Отсортировать по названию
-SELECT title, author 
-FROM books
-WHERE genre = 'Classics'
-ORDER BY title ASC;
+
 
 --задача 2А легкая
 -- Найти все книги жанра 'Classics', у которых в названии есть слово "и"
 -- Вывести: название, автора, отсортировать по автору
-SELECT title, author
-FROM books
-WHERE genre = 'Classics' AND (title LIKE '% и %' OR title LIKE 'и %' OR title LIKE '% и')
-ORDER BY author ASC; 
+
 
 --задача 2Б Легкая с JOIN
 -- Найти все выдачи книг жанра 'Classics'
 -- Вывести: название книги, дата выдачи, имя читателя
 -- Отсортировать по дате выдачи
-ВАРИАНТ БЕЗ CTE
-SELECT
-b.title AS название книги,
-l.loan_date AS дата выдачи,
-bor.name AS имя читателя
-FROM loans l
-JOIN books b ON l.book_id = b.id
-JOIN borrowers bor ON l.borrower_id = bor.id
-WHERE b.genre = 'Classics'
-ORDER BY l.loan_date ASC;
-
-
-ВАРИАНТ С CTE
-WITH book_info AS(
-    SELECT b.title,
-           l.loan_date,
-           br.name
-    FROM loans l 
-        JOIN books b ON l.book_id = b.id
-        JOIN borrower br ON l.borrower_id = br.id
-        WHERE b.genre = 'Classics'
-)
-SELECT 
-title AS название,
-loan_date AS дата выдачи,
-name AS имя читателя
-FROM book_info
-ORDER BY loan_date ASC;
 
 
 --задача 2В легкая агрегация
@@ -236,105 +172,40 @@ ORDER BY loan_date ASC;
 -- Вывести: жанр, количество книг
 -- Отсортировать по количеству (убывание)
 
-ВАРИАНТ БЕЗ CTE
-SELECT genre AS "Жанр",
-       COUNT(*) AS "Количество книг"
-FROM books
-GROUP BY "Жанр"
-ORDER BY "Количество книг" DESC;
 
-
-ВАРИАНТ С CTE
-WITH books_stats AS(
-    SELECT genre,
-            COUNT(*) AS book_count
-    FROM books
-    GROUP BY genre
-)
-SELECT 
-genre AS "Жанр",
-book_count AS "Количество книг"
- FROM books_stats
-ORDER BY 2 DESC;
 
 
 --задача 3 легкая
 -- Сколько всего книг в таблице books?
 -- Вывести общее количество
 
-SELECT COUNT(*) AS Количество
-FROM books
+
 
 --задача 4 легкая
 -- Найти все выдачи за январь 2025 года
 -- Вывести: id выдачи, дату выдачи, дату возврата
 -- Отсортировать по дате выдачи
 
-SELECT
-    id AS "id выдачи",
-    loan_date AS "Дата выдачи",
-    return_date AS "Дата возврата"
-    FROM loans
-    WHERE loan_date BETWEEN '2025-01-01' AND  '2025-01-31'  --альтернативные варианты: WHERE loan_date >='2025-01-01' AND loan_date <= '2025-01-31'   -- WHERE YEAR(loan-date)= 2025 AND MONTH(loan_date) = 1
-    ORDER BY loan_date ASC;
-
 --задача средняя
 -- Найти читателей с премиум-подпиской, которые брали книги
 -- Вывести: имя читателя, количество взятых книг
 -- Отсортировать по количеству книг (убывание)
 
-без CTE
-SELECT 
-b.name AS "Имя читателя", 
-COUNT(l.id) AS "Количество взятых книг"
-FROM loans l 
-JOIN borrowers b ON borrower_id = b.id
-WHERE b.membership_type = "Premium"
-GROUP BY b.name
-ORDER BY 2 DESC;
 
-вариант с CTE
-WITH books_info AS(
-    SELECT b.name,
-           COUNT(l.id) AS taken_books
-    FROM loans l JOIN borrowers b
-        ON l.borrower_id = b.id
-WHERE b.membership_type = 'Premium'
-GROUP BY b.name, b.id
-
-)
-SELECT
-name AS 'Имя читателя',
-taken_books AS 'Количество взятых книг'
-FROM books_info
-ORDER BY 2 DESC;
 
 
 --задача средняя
 -- Найти топ-5 самых долгих выдач
 -- Вывести: название книги, имя читателя, срок выдачи (в днях)
 -- Отсортировать по сроку выдачи (убывание)
-SELECT b.title,
-       bor.name,
-       DATEDIFF(l.return_date, l.loan_date) AS loan_long
-FROM loans l
-    JOIN books b ON l.book_id=b.id
-    JOIN borrowers bor ON l.borrower_id = bor.id
-WHERE l.return_date IS NOT NULL
-ORDER BY loan_long DESC
-LIMIT 5;
+
 
 --задача средняя
 -- В каком городе больше всего выдач?
 -- Вывести: город, количество выдач
 -- Отсортировать по количеству выдач (убывание)
 
-SELECT lib.city,
-        COUNT(*) AS count_loans
-FROM loans l JOIN libraries lib ON l.library_code = lib.code
-GROUP BY lib.city
-ORDER BY count_loans DESC
-LIMIT 1;
+
 
 
 
@@ -365,3 +236,125 @@ LIMIT 1;
 -- Найти самый популярный день недели для выдачи книг
 -- Вывести: день недели, количество выдач
 -- Подсказка: DAYNAME(loan_date)
+
+--задача 9a средняя ЦТЕ
+-- Найти читателей, которые брали больше книг, чем средний читатель
+-- Вывести: имя читателя, тип членства, количество взятых книг
+-- Отсортировать по количеству книг
+
+ 
+
+--задача 9b средняя ЦТЕ
+-- Найти библиотеки, в которых было больше выдач, 
+-- чем в среднем по всем библиотекам
+-- Вывести: название библиотеки, город, количество выдач
+-- Отсортировать по количеству выдач (убывание)
+
+
+
+--задача 9с средняя ЦТЕ
+-- Найти жанры книг, которые брали чаще среднего
+-- (чаще, чем в среднем берут книги любого жанра)
+-- Вывести: жанр, количество выдач этого жанра
+-- Отсортировать по количеству выдач (убывание)
+
+
+--задача 10a
+-- Найти самый популярный день недели для выдачи книг
+-- Вывести: день недели, количество выдач
+-- Подсказка: DAYNAME(loan_date)
+
+--задача 10b
+-- Найти самый популярный МЕСЯЦ для выдачи книг
+-- (в каком месяце чаще всего выдавали книги)
+-- Вывести: месяц (название), количество выдач
+-- Отсортировать по количеству выдач (убывание)
+-- Показать только самый популярный месяц
+
+
+--Задача 11А (средняя)
+-- Для каждого читателя найти:
+-- 1. Общее количество взятых книг
+-- 2. Дата первой выдачи
+-- 3. Дата последней выдачи
+
+-- Вывести: 
+-- имя читателя, 
+-- количество книг,
+-- первую дату выдачи,
+-- последнюю дату выдачи
+
+-- Отсортировать по количеству книг (убывание)
+-- Показать только топ-5
+
+
+ 
+
+--Задача 11Б (сложная)
+-- Для каждого читателя найти:
+-- 1. Общее количество взятых книг
+-- 2. Любимый жанр (который брал чаще всего)
+-- 3. Дата первой и последней выдачи
+
+-- Вывести: 
+-- имя читателя, 
+-- количество книг,
+-- любимый жанр,
+-- первую дату выдачи,
+-- последнюю дату выдачи
+
+-- Отсортировать по количеству книг (убывание)
+-- Показать только топ-5
+
+
+--Задача 12 (средняя)
+-- Найти топ-5 самых популярных книг
+-- (которые брали чаще всего)
+
+-- Вывести: 
+-- название книги, 
+-- автор,
+-- жанр,
+-- количество выдач
+
+-- Отсортировать по количеству выдач (убывание)
+-- Показать только топ-5
+
+
+--Задача 13 (средняя)
+-- Для каждого жанра найти:
+-- 1. Общее количество книг в каталоге
+-- 2. Общее количество выдач книг этого жанра
+-- 3. Среднее количество выдач на одну книгу в жанре
+
+-- Вывести:
+-- жанр,
+-- количество книг в жанре,
+-- количество выдач,
+-- среднее выдач на книгу (округлить до 2 знаков)
+
+-- Отсортировать по среднему количеству выдач на книгу (убывание)
+
+
+
+--Задача 14 (средняя)
+-- Проанализировать активность читателей по типам членства
+-- (Premium, Standard и т.д.)
+
+-- Для каждого типа членства найти:
+-- 1. Количество читателей
+-- 2. Общее количество взятых книг
+-- 3. Среднее количество книг на читателя
+-- 4. Процент читателей, которые брали книги
+
+-- Вывести:
+-- тип членства,
+-- количество читателей,
+-- общее количество книг,
+-- среднее книг на читателя (округлить до 1 знака),
+-- процент активных читателей (округлить до 1 знака)
+
+-- Отсортировать по среднему количеству книг (убывание)
+
+
+
