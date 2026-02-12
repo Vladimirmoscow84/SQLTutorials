@@ -449,23 +449,31 @@ CROSS JOIN avg_taken
 WHERE books_taken>avg_books
 ORDER BY books_taken DESC;
 
---задача 10 
--- Найти самый популярный день недели для выдачи книг
--- Вывести: день недели, количество выдач
--- Подсказка: DAYNAME(loan_date)
-
---задача 9a средняя ЦТЕ
--- Найти читателей, которые брали больше книг, чем средний читатель
--- Вывести: имя читателя, тип членства, количество взятых книг
--- Отсортировать по количеству книг
-
- 
 
 --задача 9b средняя ЦТЕ
 -- Найти библиотеки, в которых было больше выдач, 
 -- чем в среднем по всем библиотекам
 -- Вывести: название библиотеки, город, количество выдач
 -- Отсортировать по количеству выдач (убывание)
+
+WITH lib_stats AS(
+    SELECT lib.code,
+            lib.name,
+           lib.city,
+           COUNT(l.id) AS books_taken
+    FROM libraries lib
+    LEFT JOIN loans l ON lib.code = l.library_code
+    GROUP BY lib.code, lib.name, lib.city
+),
+avg_loans AS(
+    SELECT AVG(books_taken) As avg_loans
+    FROM lib_stats 
+)
+SELECT name, city, books_taken
+FROM lib_stats
+WHERE books_taken > avg_loans
+ORDER BY books_taken DESC;
+
 
 
 
@@ -475,12 +483,60 @@ ORDER BY books_taken DESC;
 -- Вывести: жанр, количество выдач этого жанра
 -- Отсортировать по количеству выдач (убывание)
 
+WITH genre_stats AS(
+    SELECT
+    b.genre,
+    COUNT(l.id) AS books_taken
+FROM books b 
+LEFT JOIN loans l ON b.id = l.book_id
+GROUP BY  b.genre
+),
+avg_loans AS(
+    SELECT AVG(books_taken) AS avg_taken
+    FROM genre_stats
+)
+SELECT genre, books_taken
+FROM genre_stats
+WHERE books_taken>avg_taken
+ORDER BY books_taken DESC;
 
+
+--задача 9a средняя ЦТЕ
+-- Найти читателей, которые брали больше книг, чем средний читатель
+-- Вывести: имя читателя, тип членства, количество взятых книг
+-- Отсортировать по количеству книг
+
+WITH reader_stats AS(
+    SELECT bor.id,
+        bor.name,
+        bor.membership_type,
+        COUNT(l.id) AS count_loans
+FROM borrowers bor
+LEFT JOIN loans l ON bor.id = l.borrower_id
+GROUP BY bor.id, bor.name, bor.membership_type
+),
+avg_reader AS(
+    SELECT AVG(count_loans) AS avg_bor
+    FROM reader_stats
+)
+SELECT name,
+       membership_type,
+       count_loans
+FROM reader_stats
+WHERE count_loans>avg_bor
+ORDER BY count_loans DESC;
 
 --задача 10a
 -- Найти самый популярный день недели для выдачи книг
 -- Вывести: день недели, количество выдач
 -- Подсказка: DAYNAME(loan_date)
+SELECT DAYNAME(loan_date),
+       COUNT(*)
+FROM loans
+GROUP BY DAYNAME(loan_date)
+ORDER BY COUNT(*) DESC
+LIMIT 1;
+
 
 --задача 10b
 -- Найти самый популярный МЕСЯЦ для выдачи книг
