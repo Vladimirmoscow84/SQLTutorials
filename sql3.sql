@@ -399,12 +399,55 @@ HAVING COUNT(*) > 2;
 --задача 8 средняя ЦТЕ
 -- Найти книги, которые никогда не выдавались
 -- Вывести: название, автор, жанр
+ var 1 CTE:
+WITH book_stats AS(
+    SELECT b.id,
+           b.title,
+           b.author,
+           b.genre
+FROM books b 
+LEFT JOIN loans l ON b.id = l.book_id
+WHERE l.book_id IS NULL
+)
+SELECT title,
+       author,
+       genre
+FROM book_stats;
+
+var 2 no CTE:
+SELECT b.title,
+       b.author,
+       b.genre
+FROM books b
+LEFT JOIN loans l ON b.id = l.book_id
+WHERE l.book_id IS NULL;
 
 
 --задача 9 средняя ЦТЕ
 -- Найти читателей, которые брали больше книг, чем средний читатель
 -- Вывести: имя читателя, тип членства, количество взятых книг
 -- Отсортировать по количеству книг
+
+WITH reader_loans AS (
+    SELECT bor.id,
+           bor.name,
+           bor.membership_type,
+           COUNT(*) AS books_taken
+    FROM borrowers bor
+    LEFT JOIN loans l ON l.borrower_id = bor.id
+    GROUP BY bor.id, bor.name, bor.membership_type
+),
+avg_taken AS(
+    SELECT AVG(books_taken) AS avg_books
+    FROM reader_loans
+)
+SELECT name,
+       membership_type,
+       books_taken
+FROM reader_loans
+CROSS JOIN avg_taken
+WHERE books_taken>avg_books
+ORDER BY books_taken DESC;
 
 --задача 10 
 -- Найти самый популярный день недели для выдачи книг
