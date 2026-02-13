@@ -566,9 +566,35 @@ LIMIT 1;
 
 -- Отсортировать по количеству книг (убывание)
 -- Показать только топ-5
+var 1 CTE:
+WITH reader_stats AS(
+    SELECT bor.id,
+    bor.name,
+    COUNT(l.id) AS count_loans,
+    MIN(l.loan_date) AS first_loan,
+    MAX(l.loan_date) AS last_loan
+    FROM borrowers bor
+    LEFT JOIN loans l ON bor.id = l.borrower_id
+    GROUP BY bor.id, bor.name
+)
+SELECT name,
+       count_loans,
+       first_loan,
+       last_loan
+FROM reader_stats
+ORDER BY count_loans DESC
+LIMIT 5;
 
-
- 
+var 2 without CTE:
+SELECT bor.name,
+      COUNT(l.id) AS count_loans,
+      MIN(l.loan_date) AS first_loan,
+      MAX(l.loan_date) AS last_loan
+FROM borrowers bor
+LEFT JOIN loans l ON bor.id = l.borrower_id
+GROUP BY bor.id, bor.name
+ORDER BY count_loans DESC
+LIMIT 5;
 
 --Задача 11Б (сложная)
 -- Для каждого читателя найти:
