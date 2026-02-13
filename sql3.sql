@@ -676,6 +676,47 @@ LIMIT 5;
 --🔢 Отсортировать:
 --по общему количеству выдач (убывание)
 --показать топ-5 библиотек
+WITH lib_stats AS(
+    SELECT lib.code,
+           lib.name,
+           lib.city,
+           COUNT(l.id) AS count_loans,
+           MIN(l.loan_date) AS first_loan,
+           MAX(l.loan_date) AS last_loan
+    FROM libraries lib
+    LEFT JOIN loans l ON lib.code = l.library_code
+    GROUP BY lib.code, lib.name,lib.city
+),
+genre_stats AS(
+   SELECT  l.library_code,
+    b.genre,
+    COUNT(*) AS count_genre
+    FROM loans l   
+    LEFT JOIN books b ON l.book_id = b.id
+    GROUP BY l.library_code, b.genre
+),
+top_genre AS(
+    SELECT library_code,
+           genre AS fav_genre
+    FROM genre_stats gs1 
+    WHERE count_genre = (
+        SELECT MAX(count_genre)
+        FROM genre_stats gs2
+        WHERE gs1.library_code = gs2.library_code
+    )
+)
+SELECT ls.name,
+        ls.city,
+        ls.count_loans,
+        tg.fav_genre,
+        ls.first_loan,
+        ls.last_loan
+FROM lib_stats ls
+LEFT JOIN top_genre tg ON ls.code = tg.library_code
+ORDER BY ls.count_loans DESC
+LIMIT 5;
+       
+
 
 
 --Задача 12 (средняя)
