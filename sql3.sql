@@ -611,6 +611,71 @@ LIMIT 5;
 
 -- Отсортировать по количеству книг (убывание)
 -- Показать только топ-5
+var 1 CTE:
+WITH reader_stats AS(
+    SELECT bor.id,
+           bor.name,
+           COUNT(l.id) AS count_books,
+           MIN(l.loan_date) AS first_loan,
+           MAX(l.loan_date) AS last_loan
+FROM borrowers bor 
+LEFT JOIN loans l ON bor.id = l.borrower_id
+GROUP BY bor.id,bor.name
+),
+genre_stats AS(
+   SELECT l.borrower_id,
+          b.genre,
+          COUNT(*) AS count_genre
+    FROM loans l
+    LEFT JOIN books b ON l.book_id = b.id
+    GROUP BY l.borrower_id, b.genre
+),
+favorite_genre AS(
+SELECT borrower_id,
+       MIN(genre) AS fav_genre --если одинаковое значение, то берет по алфавиту
+FROM genre_stats gs1
+WHERE count_genre = (
+    SELECT MAX(count_genre)
+    FROM genre_stats gs2
+    WHERE gs1.borrower_id = gs2.borrower_id
+)
+)
+SELECT rs.name,
+       rs.count_books,
+       fg.fav_genre,
+       rs.first_loan,
+       rs.last_loan
+FROM reader_stats rs
+LEFT JOIN favorite_genre fg ON rs.id = fg.borrower_id
+ORDER BY rs.count_books DESC
+LIMIT 5;
+
+--Задача 11В (сложная)
+--Самый популярный жанр в каждой библиотеке
+--Таблицы:
+--libraries (code, name, city)
+--books (id, title, genre)
+--loans (id, book_id, library_code, loan_date)
+
+--📌 Условие:
+--Для каждой библиотеки найти:
+--Общее количество выдач в этой библиотеке
+--Самый популярный жанр (который брали чаще всего)
+--Количество выдач этого жанра
+--Дата первой и последней выдачи в этой библиотеке
+
+--📋 Вывести:
+--название библиотеки
+--город
+--общее количество выдач
+--самый популярный жанр
+--количество выдач этого жанра
+--первая дата выдачи
+--последняя дата выдачи
+
+--🔢 Отсортировать:
+--по общему количеству выдач (убывание)
+--показать топ-5 библиотек
 
 
 --Задача 12 (средняя)
