@@ -544,6 +544,12 @@ LIMIT 1;
 -- Вывести: месяц (название), количество выдач
 -- Отсортировать по количеству выдач (убывание)
 -- Показать только самый популярный месяц
+ SELECT MONTHNAME(loan_date),
+        COUNT(*)
+FROM loans 
+GROUP BY MONTHNAME(loan_date)
+ORDER BY COUNT(*) DESC
+LIMIT 1;
 
 
 --Задача 11А (средняя)
