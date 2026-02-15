@@ -1010,3 +1010,44 @@ ORDER BY avg_loans DESC;
 --🔢 Отсортировать:
 --по общему количеству выдач (убывание)
 --показать топ-5 библиотек
+
+WITH lib_stats AS(
+    SELECT lib.code,
+           lib.name,
+           lib.city,
+           COUNT(l.loan_date) AS count_loans,
+           MIN(l.loan_date) AS first_loan,
+           MAX(l.loan_date) AS last_loan
+    FROM libraries lib
+    LEFT JOIN loans l ON lib.code = l.library_code
+    GROUP BY lib.code, lib.name,lib.city
+),
+loans_info AS(
+    SELECT library_code,
+           loan_date,
+           COUNT(*) AS count_loans
+    FROM loans
+    GROUP BY library_code, loan_date
+),
+top_loans AS(
+    SELECT li1.library_code,
+           li1.loan_date AS top_date,
+           li1.count_loans
+    FROM loans_info li1
+    WHERE li1.count_loans = (
+        SELECT MAX(li2.count_loans)
+        FROM loans_info li2
+        WHERE li1.library_code = li2.library_code
+    )
+)
+SELECT ls.name,
+       ls.city,
+       ls.count_loans AS total_loans,
+       tl.top_date,
+       tl.count_loans AS top_day_loans,
+       ls.first_loan,
+       ls.last_loan
+FROM lib_stats ls
+LEFT JOIN top_loans tl ON ls.code = tl.library_code
+ORDER BY ls.count_loans DESC
+LIMIT 5;    
