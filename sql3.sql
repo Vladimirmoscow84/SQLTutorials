@@ -716,7 +716,74 @@ LEFT JOIN top_genre tg ON ls.code = tg.library_code
 ORDER BY ls.count_loans DESC
 LIMIT 5;
        
+--11d (сложная)
+--Самый популярный автор в каждом жанре
+--Таблицы:
+--books (id, title, author, genre)
+--loans (id, book_id, loan_date)
 
+--📌 Условие:
+--Для каждого жанра найти:
+--Общее количество выдач книг этого жанра
+--Самого популярного автора (чьи книги брали чаще всего)
+--Количество выдач книг этого автора в данном жанре
+--Дата первой и последней выдачи книг этого жанра
+
+--📋 Вывести:
+--жанр
+--общее количество выдач в жанре
+--самого популярного автора
+--количество выдач этого автора
+--первую дату выдачи в жанре
+--последнюю дату выдачи в жанре
+
+--🔢 Отсортировать:
+--по общему количеству выдач (убывание)
+--показать топ-5 жанров
+
+var CTE:
+--группировка по жанрам книг (жанры с количеством взятия и крайними датами взятия)
+WITH genre_stats AS(
+    SELECT b.genre,
+           COUNT(l.id) AS total_loans,
+           MIN(l.loan_date) AS first_loan,
+           MAX(l.loan_date) AS last_loan
+    FROM books b
+    LEFT JOIN loans l ON b.id = l.book_id
+    GROUP BY b.genre
+),
+--группировка по жанру и авторам книг (авторы книг в определенном жанре с количеством взятия)
+author_stats AS(
+    SELECT b.author,
+         b.genre,
+         COUNT(l.id) AS author_loans
+    FROM books b
+    LEFT JOIN loans l ON b.id = l.book_id
+    GROUP BY b.genre, b.author
+),
+--инфо по популярности авторов
+top_authors AS(
+    SELECT genre,
+           author AS top_author,
+           author_loans
+    FROM author_stats as1
+    WHERE author_loans = (
+        SELECT MAX(author_loans)
+        FROM author_stats as2
+        WHERE as1.genre = as2.genre
+    )
+)
+--общая информация по жанрам и авторам
+SELECT gs.genre,
+       gs.total_loans,
+       ta.top_author,
+       ta.author_loans,
+       gs.first_loan,
+       gs.last_loan
+FROM genre_stats gs 
+LEFT JOIN top_authors ta ON gs.genre = ta.genre
+ORDER BY gs.total_loans DESC
+LIMIT 5;
 
 
 --Задача 12 (средняя)
@@ -731,6 +798,35 @@ LIMIT 5;
 
 -- Отсортировать по количеству выдач (убывание)
 -- Показать только топ-5
+var CTE:
+WITH book_stats AS(
+    SELECT b.id,
+           b.title,
+           b.author,
+           b.genre,
+           COUNT(l.id) AS count_loans
+    FROM books b
+    LEFT JOIN loans l ON b.id = l.book_id
+    GROUP BY b.id, b.title, b.author, b.genre
+)
+SELECT title,
+       author,
+       genre,
+       count_loans
+FROM book_stats
+ORDER BY count_loans DESC
+LIMIT 5;
+
+var NO CTE;
+SELECT b.title,
+       b.author,
+       b.genre,
+       COUNT(l.id) AS count_loans
+FROM books b
+LEFT JOIN loans l ON b.id = l.book_id
+GROUP BY b.id, b.title, b.author, b.genre
+ORDER BY count_loans DESC
+LIMIT 5;
 
 
 --Задача 13 (средняя)
