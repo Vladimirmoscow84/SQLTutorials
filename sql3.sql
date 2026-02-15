@@ -843,7 +843,31 @@ LIMIT 5;
 
 -- Отсортировать по среднему количеству выдач на книгу (убывание)
 
+var CTE:
+WITH book_stats AS(
+    SELECT b.genre,
+    COUNT(*) AS count_genre_books,
+    COUNT(l.id) AS count_genre_loans
+FROM books b 
+LEFT JOIN loans l ON b.id = l.book_id
+GROUP BY b.genre 
+)
+SELECT genre,
+       count_genre_books,
+       count_genre_loans,
+       ROUND((count_genre_loans * 1.0/count_genre_books),2) AS avg_loan_per_book
+FROM book_stats
+ORDER BY avg_loan_per_book DESC;
 
+var NO CTE;
+SELECT b.genre,
+       COUNT(*) AS count_genre_books,
+       COUNT(l.id) AS count_genre_loans,
+       ROUND(COUNT(l.id) *1.0/COUNT(*), 2) AS avg_genre_loans
+FROM books b 
+LEFT JOIN loans l ON b.id = l.book_id
+GROUP BY b.genre
+ORDER BY avg_genre_loans DESC;
 
 --Задача 14 (средняя)
 -- Проанализировать активность читателей по типам членства
