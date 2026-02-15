@@ -888,5 +888,34 @@ ORDER BY avg_genre_loans DESC;
 
 -- Отсортировать по среднему количеству книг (убывание)
 
+var NO CTE:
+SELECT bor.membership_type,
+       COUNT(*) AS count_bor,
+       COUNT(l.id) AS count_loans,
+       ROUND(COUNT(l.id) *1.0/count(*), 1) AS avg_bor_loans,
+       ROUND(COUNT(CASE WHEN l.id IS NOT NULL THEN 1 END) *100.0 / COUNT(*),1) AS percent_bor
+FROM borrowers bor 
+LEFT JOIN loans l ON bor.id = l.borrower_id
+GROUP BY bor.membership_type 
+ORDER BY avg_bor_loans DESC;
+
+var CTE:
+WITH readers_stats AS(
+    SELECT bor.membership_type,
+    COUNT(*) AS readers_count,
+    COUNT(l.id) AS count_loans,
+    ROUND(COUNT(l.id)*1.0/COUNT(*),1) AS avg_loans,
+    ROUND(COUNT(CASE WHEN l.id IS NOT NULL THEN 1 END) * 100.0/COUNT(*), 1) percent
+FROM borrowers bor
+LEFT JOIN loans l ON bor.id = l.borrower_id
+GROUP BY bor.membership_type
+)
+SELECT membership_type,
+      readers_count,
+      count_loans,
+      avg_loans,
+      percent
+FROM readers_stats
+ORDER BY avg_loans DESC;
 
 
