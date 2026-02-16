@@ -1015,39 +1015,39 @@ WITH lib_stats AS(
     SELECT lib.code,
            lib.name,
            lib.city,
-           COUNT(l.loan_date) AS count_loans,
+           COUNT(l.id) AS total_loans,
            MIN(l.loan_date) AS first_loan,
            MAX(l.loan_date) AS last_loan
-    FROM libraries lib
+    FROM libraries lib 
     LEFT JOIN loans l ON lib.code = l.library_code
-    GROUP BY lib.code, lib.name,lib.city
+    GROUP BY lib.code, lib.name, lib.city  
 ),
-loans_info AS(
+loan_stats AS(
     SELECT library_code,
            loan_date,
            COUNT(*) AS count_loans
     FROM loans
     GROUP BY library_code, loan_date
 ),
-top_loans AS(
-    SELECT li1.library_code,
-           li1.loan_date AS top_date,
-           li1.count_loans
-    FROM loans_info li1
-    WHERE li1.count_loans = (
-        SELECT MAX(li2.count_loans)
-        FROM loans_info li2
-        WHERE li1.library_code = li2.library_code
+ top_loans AS(
+    SELECT ls1.library_code,
+           ls1.loan_date AS top_date,
+           ls1.count_loans AS top_loans
+    FROM loan_stats ls1
+    WHERE ls1.count_loans = (
+        SELECT MAX(ls2.count_loans)
+        FROM loan_stats ls2
+        WHERE ls1.library_code = ls2.library_code
     )
-)
-SELECT ls.name,
+ )
+SELECT ls.name, 
        ls.city,
-       ls.count_loans AS total_loans,
+       ls.total_loans,
        tl.top_date,
-       tl.count_loans AS top_day_loans,
+       tl.top_loans,
        ls.first_loan,
        ls.last_loan
 FROM lib_stats ls
 LEFT JOIN top_loans tl ON ls.code = tl.library_code
-ORDER BY ls.count_loans DESC
-LIMIT 5;    
+ORDER BY ls.total_loans DESC
+LIMIT 5;
