@@ -1051,3 +1051,35 @@ FROM lib_stats ls
 LEFT JOIN top_loans tl ON ls.code = tl.library_code
 ORDER BY ls.total_loans DESC
 LIMIT 5;
+
+--Задача 16 (средняя)
+--Книги, которые сейчас на руках
+--Таблицы:
+--books (id, title, author)
+--loans (id, book_id, loan_date, return_date)
+
+--📌 Условие:
+--Найти все книги, которые взяты и ещё не возвращены (т.е. return_date IS NULL).
+--Для каждой такой книги вывести:
+--название книги
+--автора
+--дату выдачи
+--сколько дней прошло с момента выдачи до сегодняшнего дня (округлить до целого числа)
+--📋 Вывести:
+--название книги
+--автор
+--дата выдачи
+--дней с выдачи
+--🔢 Отсортировать:
+--сначала те, что дольше всего на руках (по убыванию дней)
+
+SELECT
+    b.title,
+    b.author,
+    l.loan_date,
+    ROUND(DATEDIFF(CURDATE(), l.loan_date),0) AS days_on_hands
+    FROM loans l
+    LEFT JOIN books b ON l.book_id = b.id
+    WHERE l.return_date IS NULL
+    ORDER BY days_on_hands DESC;
+
