@@ -11,49 +11,68 @@
 -- Эта таблица отображает активность игроков в некоторых играх. 
 -- Каждая строка — это запись игрока, который вошёл в систему и сыграл определённое количество игр (возможно, 0), а затем вышел в какой-то день, используя какое-то устройство. 
 
+player_id | device_id | event_date | games_played
+----------|-----------|------------|-------------
+1         | 2         | 2024-03-01 | 5
+1         | 2         | 2024-03-02 | 3
+2         | 3         | 2024-03-01 | 0
+3         | 1         | 2024-03-02 | 8
+3         | 4         | 2024-03-03 | 2
+
+
 -- Задача 1: 
 -- Найти общее количество уникальных игроков, которые были активны в 2016 году.
 -- Ожидаемый вывод: Одно число — количество игроков.
-
-SELECT COUNT(DISTINCT player_id) AS unique_players
-FROM Activity
-WHERE event_date BETWEEN '2016-01-01' AND '2016-12-31'
-
+SELECT COUNT(DISTINCT player_id) AS count_players
+FROM activity
+WHERE event_date BETWEEN '2016-01-01' AND '2016-12-31';
 
 -- Задача 2: 
 -- Для каждого игрока (player_id) определить, сколько всего игр (games_played) он сыграл за всё время.
 -- Ожидаемый вывод: Таблица с колонками player_id и total_games_played, отсортированная по player_id.
 
-SELECT player_id, SUM(games_played) AS total_games_played
-FROM Activity
+SELECT player_id,
+       SUM(games_played) AS total_games_played
+FROM activity
 GROUP BY player_id
-ORDER BY player_id
-
+ORDER BY player_id;
 
 -- Задание 3 (Средний уровень)
 -- Цель: Определить дату первой активности каждого игрока и устройство (device_id), которое он использовал в этот день.
 -- Ожидаемый вывод: Таблица с колонками player_id, first_event_date, first_device_id.
 
-WITH first_date AS (
-    SELECT player_id, MIN(event_date) AS first_event_date
-    FROM Activity
-    GROUP BY player_id
+CTE:
+WITH first_date AS(
+    SELECT player_id,
+    MIN(event_date) As first_event_date
+FROM activity
+GROUP BY player_id
 )
-SELECT player_id, first_event_date, device_id AS first_device_id
-FROM Activity a
-JOIN first_date f ON a.player_id = f.player_id
-WHERE event_date = first_event_date
+SELECT 
+f.player_id,
+f.first_event_date,
+a.device_id AS first_device_id
+FROM first_date f
+LEFT JOIN activity a ON f.player_id = a.player_id AND f.first_event_date = a.event_date
 
+без CTE:
+SELECT a.player_id,
+a.event_date AS first_event_date,
+a.device_id AS first_device_id
+FROM activity a
+JOIN (SELECT player_id,
+             MIN(event_date) AS first_event_date
+      FROM activity
+      GROUP BY player_id
+      ) f ON a.player_id = f.player_id AND a.event_date = f.first_event_date;
+       
 
 
 -- Задание 4 (Средний уровень)
 -- Цель: Найти количество сессий (записей в таблице) и среднее количество сыгранных игр (games_played) для каждого игрока, но только для тех, у кого общее количество сессий больше 1.
 -- Ожидаемый вывод: Таблица с колонками player_id, session_count, avg_games_per_session.
 
-SELECT player_id, COUNT(*) AS session_count,  ROUND(AVG(games_played), 2) AS avg_games_per_session
-FROM Activity
-GROUP BY player_id
-HAVING COUNT(*) > 1
+
 
 
 
@@ -61,16 +80,6 @@ HAVING COUNT(*) > 1
 -- Цель: Найти всех игроков, которые вернулись в игру на следующий день после своей первой активности (т.е. зашли и в первый, и во второй день). Под "следующим днем" подразумевается дата, следующая за first_event_date, независимо от того, были ли пропуски в дальнейшем.
 -- Ожидаемый вывод: Таблица с колонкой player_id, содержащая только ID таких игроков.
 
-WITH first_date AS(
-    SELECT player_id, MIN(event_date) AS first_event_date
-    FROM Activity
-    GROUP BY player_id
-)
-SELECT a.player_id 
-FROM Activity a
-JOIN first_date f ON f.player_id = a.player_id
-WHERE event_date - first_event_date = 1
-
 
 
 
@@ -80,33 +89,14 @@ WHERE event_date - first_event_date = 1
 -- Уточнение: Считайте, что если у игрока есть запись с event_date, в точности равной дате его первого входа + 7 дней, то он "удержан".
 -- Ожидаемый вывод: Одно число retention_rate, округленное до 2 знаков после запятой (в процентах или долях, уточните в формулировке задачи).
 
-WITH first_date AS(
-    SELECT player_id, MIN(event_date) AS first_event_date
-    FROM Activity
-    GROUP BY player_id
-)
 
-SELECT ROUND(COUNT(*)* 1.0/(SELECT COUNT(DISTINCT player_id) FROM Activity), 2) AS retention_rate
-FROM Activity a JOIN first_date f ON f.player_id = a.player_id AND a.event_date - f.first_event_date = 7
 
 -- Задание 6 (Сложный уровень)
 -- Цель: Рассчитать "долю удержания" игроков на 7-й день. Доля удержания — это процент игроков, которые были активны (имели хотя бы одну сессию) ровно через 7 дней после своей первой активности (т.е. на first_event_date + 7).
 -- Уточнение: Считайте, что если у игрока есть запись с event_date, в точности равной дате его первого входа + 7 дней, то он "удержан".
 -- Ожидаемый вывод: Одно число retention_rate, округленное до 2 знаков после запятой (в процентах или долях, уточните в формулировке задачи).
 
-WITH first_date AS(
-    SELECT player_id, MIN(event_date) AS first_event_date
-    FROM Activity
-    GROUP BY player_id
-),
-players_count AS(
-    SELECT COUNT(DISTINCT player_id) AS all_players
-    FROM Activity
-)
-SELECT ROUND(COUNT(*)*1.0 / players_count.all_players,2) AS retention_rate
-FROM Acivity a
-    JOIN first_date f 
-    ON  a.player_id = f.player_id AND a.event_date - f.first_event_date=7
+
 
 
 -- Задание 7 (Сложный уровень, аналитика)
@@ -116,24 +106,6 @@ FROM Acivity a
 -- Ожидаемый вывод: Таблица с колонками event_date, dau, new_players, отсортированная по event_date.
 -- Эти задания охватывают ключевые концепции SQL: агрегацию (COUNT, SUM, AVG), группировку (GROUP BY), фильтрацию (HAVING, подзапросы в WHERE), работу с датами, использование оконных функций (ROW_NUMBER(), FIRST_VALUE()) и сложную логику для аналитических расчетов.
 
-WITH first_date AS(
-    SELECT player_id, MIN(event_date) AS first_event_date
-    FROM Activity
-    GROUP BY player_id
-),
-    players_in_date(
-SELECT COUNT(*) AS players_per_date, event_date
-    FROM Acivity
-    GROUP BY event_date
-    ),
-    first_date_players (
-SELECT  first_event_date, COUNT(*) AS new_players_per_date
-    FROM first_date
-    GROUP BY first_event_date
-    )
-SELECT t1.event_date, t1.players_per_date, t2.new_players_per_date
-FROM players_in_date t1 JOIN
-    first_date_players t2 ON t1.event_date = t2.first_event_date
 
 -- Задание 8 (Сложный уровень, оконные функции)
 -- Цель: Для каждой записи активности (player_id, event_date) найти "максимальное накопленное" количество игр. Это означает: для каждой даты игрока нужно знать рекордное (максимальное) общее количество игр, которое он когда-либо набрал ко всем предыдущим датам включительно.
@@ -219,13 +191,4 @@ FROM all_dates, not_one_days
 -- | 2.00   |  -- (5 + 1 + 0) / 3 = 2.00
 -- +--------+
 
-WITH first_date AS(
-    SELECT player_id,
-        MIN(event_date) AS first_event_date
-    FROM Activity
-    GROUP BY player_id
-)
-SELECT ROUND(AVG(games_played),2) AS avg
-FROM Activity a 
-JOIN first_date f ON a.player_id= f.player_id AND a.event_date  = f.first_event_date
 
