@@ -286,15 +286,46 @@ AND a.event_date = f.first_event;
 
 -- [ЛЕГКАЯ] Задача 2
 -- - Найдите количество уникальных игроков, которые заходили хотя бы один раз.
+SELECT COUNT(DISTINCT player_id)
+FROM activity;
 
 -- [ЛЕГКАЯ] Задача 3
 -- - Найдите для каждого игрока его первую и последнюю дату входа.
 -- - Выведите: player_id, first_date, last_date.
 -- - Отсортируйте по player_id.
+SELECT 
+player_id,
+MIN(event_date) AS first_date,
+MAX(event_date) AS last_date
+FROM activity
+GROUP BY player_id
+ORDER BY player_id;
+
 
 -- [СРЕДНЯЯ] Задача 4
 -- - Найдите всех игроков, у которых общее количество сыгранных игр больше 100.
 -- - Выведите только player_id.
+CTE:
+WITH players AS(
+    SELECT player_id,
+           SUM(games_played) AS sum_games
+    FROM activity
+    GROUP BY player_id
+)
+SELECT player_id
+FROM players
+WHERE sum_games>100
+
+no CTE:
+SELECT a.player_id
+FROM activity a
+JOIN (
+    SELECT player_id,
+           SUM(games_played) AS sum_games
+    FROM activity
+    GROUP BY player_id
+) f ON a.player_id = f.player_id
+WHERE f.sum_games > 100
 
 -- [СРЕДНЯЯ] Задача 5
 -- - Найдите игроков, которые заходили хотя бы 2 дня подряд (в любой момент).
