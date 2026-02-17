@@ -135,6 +135,29 @@ WHERE DATEDIFF(a.event_date, f.first_event) = 1;
 -- Уточнение: Считайте, что если у игрока есть запись с event_date, в точности равной дате его первого входа + 7 дней, то он "удержан".
 -- Ожидаемый вывод: Одно число retention_rate, округленное до 2 знаков после запятой (в процентах или долях, уточните в формулировке задачи).
 
+WITH first_event AS (
+    SELECT player_id,
+           MIN(event_date) AS first_date
+    FROM activity
+    GROUP BY player_id
+),
+seven_day_activity AS(
+    SELECT
+    a.player_id,
+    COUNT(a.player_id) AS count_players
+    FROM activity a
+    JOIN first_event f ON a.player_id = f.player_id
+    WHERE DATEDIFF(f.first_date, a.event_date) = -7
+
+)
+SELECT  ROUND(count_players *1.0/ (
+    SELECT COUNT(DISTINCT player_id)
+    FROM activity
+),2) AS retention_rate
+
+FROM seven_day_activity 
+
+
 
 
 -- Задание 6 (Сложный уровень)
