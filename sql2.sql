@@ -184,6 +184,8 @@ FROM seven_day_activity
 -- Уточнение: Если игрок заходил несколько раз в один день (по условию задачи не может, т.к. (player_id, event_date) — PK), но в реальности такое возможно, считайте, что даты уникальны.
 -- Ожидаемый вывод: Таблица с колонками player_id, event_date, days_until_next_activity.
 
+
+
 -- Задача экзамена 1: 
 -- Для каждого игрока определите: 
 -- - его первую дату входа, 
@@ -214,7 +216,17 @@ FROM seven_day_activity
 -- | 0.67 | 
 -- 2 из 3 игроков имеют ≥2 дня → 2/3 ≈ 0.67 
 -- +-----------+
-         
+WITH first_last AS(
+    SELECT player_id,
+    MIN(event_date),
+    MAX(event_date)
+    FROM activity
+    GROUP BY player_id
+    HAVING MIN(event_date) <> MAX(event_date)
+)
+SELECT 
+(SELECT COUNT(player_id) * 1.0 FROM first_last) / 
+(SELECT COUNT(DISTINCT player_id) FROM activity) AS fraction
 
 -- Задача экзамена 2:
 -- - Найдите среднее количество игр (games_played), сыгранных игроками в их первый день входа.
