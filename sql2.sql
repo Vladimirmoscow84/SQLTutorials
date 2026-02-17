@@ -104,8 +104,29 @@ SELECT player_id,
 -- Задание 5 (Средний/Сложный уровень)
 -- Цель: Найти всех игроков, которые вернулись в игру на следующий день после своей первой активности (т.е. зашли и в первый, и во второй день). Под "следующим днем" подразумевается дата, следующая за first_event_date, независимо от того, были ли пропуски в дальнейшем.
 -- Ожидаемый вывод: Таблица с колонкой player_id, содержащая только ID таких игроков.
+CTE:
+WITH first_activity AS(
+    SELECT player_id,
+        MIN(event_date) AS first_event_date
+    FROM activity 
+    GROUP BY player_id
+)
 
+SELECT a.player_id
+FROM activity a
+JOIN first_activity f ON a.player_id = f.player_id
+WHERE DATEDIFF(a.event_date,f.first_event_date) = 1
 
+no CTE:
+SELECT a.player_id
+    FROM activity a
+JOIN( 
+    SELECT player_id,
+           MIN(event_date) AS first_event
+    FROM activity
+    GROUP BY player_id
+) f ON a.player_id = f.player_id
+WHERE DATEDIFF(a.event_date, f.first_event) = 1;
 
 
 
