@@ -147,7 +147,7 @@ seven_day_activity AS(
     COUNT(a.player_id) AS count_players
     FROM activity a
     JOIN first_event f ON a.player_id = f.player_id
-    WHERE DATEDIFF(f.first_date, a.event_date) = -7
+    WHERE DATEDIFF(a.event_date,f.first_date) = 7
 
 )
 SELECT  ROUND(count_players *1.0/ (
