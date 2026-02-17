@@ -71,9 +71,34 @@ JOIN (SELECT player_id,
 -- Задание 4 (Средний уровень)
 -- Цель: Найти количество сессий (записей в таблице) и среднее количество сыгранных игр (games_played) для каждого игрока, но только для тех, у кого общее количество сессий больше 1.
 -- Ожидаемый вывод: Таблица с колонками player_id, session_count, avg_games_per_session.
+player_id | device_id | event_date | games_played
+----------|-----------|------------|-------------
+1         | 2         | 2024-03-01 | 5
+1         | 2         | 2024-03-02 | 3
+2         | 3         | 2024-03-01 | 0
+3         | 1         | 2024-03-02 | 8
+3         | 4         | 2024-03-03 | 2
+без CTE:
+SELECT player_id,
+       COUNt(*) AS session_count,
+       AVG(games_played) AS avg_games_per_session
+       FROM activity
+    GROUP BY player_id
+    HAVING COUNT(*) > 1;
 
-
-
+CTE:
+WITH sessions AS(
+    SELECT player_id,
+    COUNT(*) AS session_count,
+    AVG(games_played) AS avg_games_played_per_session
+FROM activity
+GROUP BY player_id
+)
+SELECT player_id,
+       session_count,
+       avg_games_played_per_session
+    FROM sessions
+    WHERE session_count>1;
 
 
 -- Задание 5 (Средний/Сложный уровень)
