@@ -394,3 +394,14 @@ SELECT ROUND(count_other_day * 1.0/count_first_day,2)
 FROM counts;
 
 
+
+WITH first_last AS(
+    SELECT player_id,
+    MIN(event_date) As first_date,
+    MAX(event_date) AS last_date
+    FROM activity
+    GROUP BY player_id
+    HAVING MIN(event_date) <> MAX(event_date)
+)
+SELECT ROUND((SELECT COUNT(*) * 1.0 FROM first_last)/
+    (SELECT COUNT(DISTINCT player_id) FROM activity),2) AS fraction
