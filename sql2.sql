@@ -331,17 +331,66 @@ WHERE f.sum_games > 100
 -- - Найдите игроков, которые заходили хотя бы 2 дня подряд (в любой момент).
 -- - Выведите только player_id.
 
+SELECT a.player_id
+FROM activity a 
+JOIN activity f ON a.player_id = f.player_id AND a.event_date<f.event_date
+WHERE DATEDIFF(f.event_date, a.event_date) = 1
+GROUP BY a.player_id
+
 -- [СРЕДНЯЯ] Задача 6
 -- - Найдите день с максимальным количеством уникальных игроков (DAU).
 -- - Выведите: event_date, dau.
+WITH day_stats AS(
+SELECT COUNT(player_id) AS count_players,
+       event_date
+FROM activity 
+GROUP BY event_date
+)
+SELECT count_players AS dau,
+       event_date
+FROM  day_stats
+ORDER BY dau DESC
+LIMIT 1;
 
 -- [СЛОЖНАЯ] Задача 7
 -- - Для каждого игрока найдите дату его второго входа (если она есть).
 -- - Выведите: player_id, second_date.
 -- - Если второй даты нет, такого игрока не выводить.
 
+WITH first_date AS(
+    SELECT player_id,
+           MIN(event_date) AS first_event
+    FROM activity 
+    GROUP BY player_id
+)
+SELECT a.player_id,
+       MIN(a.event_date) AS second_date
+FROM activity a 
+JOIN first_date f ON a.player_id = f.player_id
+WHERE a.event_date > f.first_date
+GROUP BY a.player_id
+
+
 -- [СЛОЖНАЯ] Задача 8
 -- - Найдите долю игроков, у которых первый и последний день входа не совпадают (то есть были активны минимум 2 дня).
 -- - Округлите до 2 знаков после запятой.
+WITH gamer_stats AS(
+    SELECT player_id,
+           MIN(event_date) AS first_date,
+           MAX(event_date) AS last_date
+    FROM activity
+    GROUP BY player_id
+),
+
+counts AS(
+    SELECT 
+    (SELECT COUNT(*) FROM gamer_stats
+              WHERE first_date<>last_date
+    ) AS count_other_day,
+    (SELECT COUNT(*) FROM gamer_stats
+    ) AS count_first_day
+)
+SELECT ROUND(count_other_day * 1.0/count_first_day,2)
+FROM counts;
 
 
