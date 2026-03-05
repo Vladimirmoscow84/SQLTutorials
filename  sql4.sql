@@ -23,12 +23,19 @@ player_id | device_id | event_date | games_played
 -- Задача 1: 
 -- Найти общее количество уникальных игроков, которые были активны в 2016 году.
 -- Ожидаемый вывод: Одно число — количество игроков.
+SELECT COUNT(DISTINCT player_id)
+FROM activity
+WHERE YEAR(event_date) = 2016;
 
 
 -- Задача 2: 
 -- Для каждого игрока (player_id) определить, сколько всего игр (games_played) он сыграл за всё время.
--- Ожидаемый вывод: Таблица с колонками player_id и total_games_played, отсортированная по player_id.
-
+-- Ожидаемый вывод: Таблица с колонками player_id и total_games_played, отсортированная по player_id по возрастанию.
+SELECT player_id,
+       SUM(games_played) AS total_games_played
+FROM activity
+GROUP BY player_id
+ORDER BY player_id DESC;
 
 -- Задание 3 (Средний уровень)
 -- Цель: Определить дату первой активности каждого игрока и устройство (device_id), которое он использовал в этот день.
