@@ -106,9 +106,27 @@ HAVING COUNT(*) > 1;
 -- Задание 5 (Средний/Сложный уровень)
 -- Цель: Найти всех игроков, которые вернулись в игру на следующий день после своей первой активности (т.е. зашли и в первый, и во второй день). Под "следующим днем" подразумевается дата, следующая за first_event_date, независимо от того, были ли пропуски в дальнейшем.
 -- Ожидаемый вывод: Таблица с колонкой player_id, содержащая только ID таких игроков.
+CTE:
+WITH first_date AS (
+    SELECT player_id,
+            MIN(event_date) AS first_event
+    FROM activity
+    GROUP BY player_id
+)
+SELECT a.player_id
+FROM activity a
+JOIN first_date f ON a.player_id = f.player_id
+WHERE DATEDIFF(a.event_date, f.first_event) = 1
 
-
-
+no CTE:
+SELECT a.player_id
+FROM activity a
+WHERE DATEDIff(a.event_date,
+    (SELECT
+        MIN(a1.event_date)
+        FROM activity a1
+        WHERE a.player_id = a1.player_id)
+)= 1;
 
 -- Задание 6 (Сложный уровень)
 -- Цель: Рассчитать "долю удержания" игроков на 7-й день. Доля удержания — это процент игроков, которые были активны (имели хотя бы одну сессию) ровно через 7 дней после своей первой активности (т.е. на first_event_date + 7).
