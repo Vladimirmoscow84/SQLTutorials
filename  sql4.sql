@@ -40,6 +40,29 @@ ORDER BY player_id DESC;
 -- Задание 3 (Средний уровень)
 -- Цель: Определить дату первой активности каждого игрока и устройство (device_id), которое он использовал в этот день.
 -- Ожидаемый вывод: Таблица с колонками player_id, first_event_date, first_device_id.
+CTE:
+WITH first_activity AS(
+SELECT player_id,
+        MIN(event_date) AS first_event
+    FROM activity
+    GROUP BY player_id
+)
+SELECT a.player_id,
+    a.event_date AS first_event_date,
+    a.device_id AS first_device_id
+    FROM activity a
+    JOIN first_activity f ON a.player_id = f.player_id AND a.event_date = f.first_event
+
+no CTE:
+SELECT a.player_id,
+       a.event_date AS first_event_date,
+       a.device_id AS first_device_id
+FROM activity a
+WHERE a.event_date = (
+    SELECT MIN(a1.event_date)
+    FROM activity a1
+    WHERE a1.player_id = a.player_id
+);
 
 
 
@@ -47,7 +70,36 @@ ORDER BY player_id DESC;
 -- Цель: Найти количество сессий (записей в таблице) и среднее количество сыгранных игр (games_played) для каждого игрока, но только для тех, у кого общее количество сессий больше 1.
 -- Ожидаемый вывод: Таблица с колонками player_id, session_count, avg_games_per_session.
 
+player_id | device_id | event_date | games_played
+----------|-----------|------------|-------------
+1         | 2         | 2024-03-01 | 5
+1         | 2         | 2024-03-02 | 3
+2         | 3         | 2024-03-01 | 0
+3         | 1         | 2024-03-02 | 8
+3         | 4         | 2024-03-03 | 2
 
+CTE:
+WITH player_event AS(
+    SELECT player_id,
+    COUNT(*) AS player_session_count
+    FROM activity 
+    GROUP BY player_id
+    HAVING COUNT(*) > 1
+)
+SELECT a.player_id,
+       p.player_session_count AS session_count,
+       AVG(a.games_played) AS avg_games_per_session
+FROM activity a 
+JOIN player_event p ON a.player_id = p.player_id
+GROUP BY a.player_id
+
+ no CTE:
+SELECT player_id,
+    COUNT(*) AS session_count,
+    AVG(games_played) AS avg_games_per_session
+FROM activity
+GROUP BY player_id
+HAVING COUNT(*) > 1;
 
 
 
