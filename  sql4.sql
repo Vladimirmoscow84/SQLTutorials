@@ -343,9 +343,19 @@ GROUP BY a.player_id
 -- - Для каждого игрока найдите дату его второго входа (если она есть).
 -- - Выведите: player_id, second_date.
 -- - Если второй даты нет, такого игрока не выводить.
-WIT
-
-
+WITH first_event AS(
+    SELECT player_id,
+            MIN(event_date) AS first_date
+    FROM activity
+    GROUP BY player_id
+)
+SELECT a.player_id,
+       MIN(a.event_date) AS second_date
+FROM activity a
+JOIN first_event f ON a.player_id = f.player_id 
+                   AND a.event_date>f.first_date
+GROUP BY a.player_id
+    
 
 -- [СЛОЖНАЯ] Задача 8
 -- - Найдите долю игроков, у которых первый и последний день входа не совпадают (то есть были активны минимум 2 дня).
