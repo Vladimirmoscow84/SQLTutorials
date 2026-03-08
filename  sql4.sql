@@ -264,12 +264,31 @@ WITH first_date AS(
 )
 SELECT ROUND(AVG(a.games_played),2) AS avg_games_played
 FROM activity a
-JOIN first_date f ON a.player_id = f.player_id AND f.first_event =a.event_date
+JOIN first_date f ON a.player_id = f.player_id AND f.first_event =a.event_date;
 
 
 
 -- [ЛЕГКАЯ] Задача 2
 -- - Найдите количество уникальных игроков, которые заходили хотя бы один раз.
+no CTE:
+SELECT COUNT(DISTINCT(a.player_id))
+FROM activity a
+WHERE a.player_id IN(
+    SELECT player_id
+    FROM activity
+    GROUP BY player_id
+    HAVING MIN(event_date)<> MAX(event_date)
+);
+
+CTE:
+WITH more_one_day AS(
+    SELECT player_id
+    FROM activity
+    GROUP BY player_id
+    HAVING MIN(event_date)<>MAX(event_date)
+)
+SELECT COUNT(player_id)
+FROM more_one_day
 
 -- [ЛЕГКАЯ] Задача 3
 -- - Найдите для каждого игрока его первую и последнюю дату входа.
