@@ -214,6 +214,16 @@ FROM all_players, seven_day
 -- 2 из 3 игроков имеют ≥2 дня → 2/3 ≈ 0.67 
 -- +-----------+
 
+WITH more_1_day AS(
+    SELECT player_id
+    FROM activity 
+    GROUP BY player_id
+    HAVING MIN(event_date) <> MAX(event_date)
+)
+SELECT ROUND(
+    (SELECT COUNT(*) FROM more_1_day)*1.0/
+    (SELECT COUNT(DISTINCT(player_id)) FROM activity)
+,2) AS fraction
 
 -- Задача экзамена 2:
 -- - Найдите среднее количество игр (games_played), сыгранных игроками в их первый день входа.
@@ -231,7 +241,6 @@ FROM all_players, seven_day
 -- | 3         | 2018-07-03 | 5            |
 -- +-----------+------------+--------------+
 -- 
--- 
 -- Результат:
 -- 
 -- +--------+
@@ -239,9 +248,26 @@ FROM all_players, seven_day
 -- +--------+
 -- | 2.00   |  -- (5 + 1 + 0) / 3 = 2.00
 -- +--------+
+CTE:
+WITH fist_day AS(
+    SELECT player_id,
+    MIN(event_date) AS first_date
+    FROM activity
+    GROUP BY player_id
+)
+SELECT ROUND(AVG(a.games_played),2)
+FROM activity a
+JOIN first_day f ON a.player_id = f.player_id
+                 AND a.event_date = f.first_date; 
 
-
-
+no CTE:
+SELECT ROUND(AVG(a.games_played),2)
+FROM activity a
+WHERE a.event_date = (
+    SELECT MIN(a1.event_date)
+    FROM activity a1
+    WHERE a.player_id = a1.player_id
+    );
 
 -- [ЛЕГКАЯ] Задача 1
 -- - Найдите среднее количество игр (games_played), сыгранных игроками в их первый день входа.
