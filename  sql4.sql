@@ -361,3 +361,12 @@ GROUP BY a.player_id
 -- - Найдите долю игроков, у которых первый и последний день входа не совпадают (то есть были активны минимум 2 дня).
 -- - Округлите до 2 знаков после запятой.
 
+WITH any_days AS(
+    SELECT player_id
+    FROM activity
+    GROUP BY player_id
+    HAVING MIN(event_date)<> MAX(event_date)
+)
+SELECT ROUND(
+    (SELECT COUNT(*) FROM any_days)*1.0/
+    (SELECT COUNT(DISTINCT(player_id)) FROM activity), 2) AS fraction
