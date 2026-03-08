@@ -330,13 +330,20 @@ GROUP BY a.player_id
 -- [СРЕДНЯЯ] Задача 6
 -- - Найдите день с максимальным количеством уникальных игроков (DAU).
 -- - Выведите: event_date, dau.
+    SELECT event_date,
+           COUNT(player_id) AS dau
+    FROM activity
+    GROUP BY event_date
+    ORDER BY dau DESC
+    LIMIT 1;
+
 
 
 -- [СЛОЖНАЯ] Задача 7
 -- - Для каждого игрока найдите дату его второго входа (если она есть).
 -- - Выведите: player_id, second_date.
 -- - Если второй даты нет, такого игрока не выводить.
-
+WIT
 
 
 
