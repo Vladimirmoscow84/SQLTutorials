@@ -295,6 +295,14 @@ FROM more_one_day
 -- - Выведите: player_id, first_date, last_date.
 -- - Отсортируйте по player_id.
 
+SELECT player_id,
+MIN(event_date) AS first_date,
+MAX(event_date) AS last_date
+FROM activity
+GROUP BY player_id
+HAVING MIN(event_date) <> MAX(event_date)
+ORDER BY player_id;
+
 
 
 -- [СРЕДНЯЯ] Задача 4
