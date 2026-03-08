@@ -246,6 +246,26 @@ FROM all_players, seven_day
 -- [ЛЕГКАЯ] Задача 1
 -- - Найдите среднее количество игр (games_played), сыгранных игроками в их первый день входа.
 -- - Округлите результат до 2 знаков после запятой.
+no CTE: 
+SELECT ROUND(AVG(a.games_played),2) AS avg_ames_played
+FROM activity a
+WHERE a.event_date = (
+    SELECT MIN(a1.event_date)
+    FROM activity a1
+    WHERE a.player_id = a1.player_id
+);
+
+CTE:
+WITH first_date AS(
+    SELECT player_id,
+    MIN(event_date) AS first_event
+    FROM activity
+    GROUP BY player_id
+)
+SELECT ROUND(AVG(a.games_played),2) AS avg_games_played
+FROM activity a
+JOIN first_date f ON a.player_id = f.player_id AND f.first_event =a.event_date
+
 
 
 -- [ЛЕГКАЯ] Задача 2
