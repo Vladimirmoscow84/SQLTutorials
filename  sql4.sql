@@ -126,6 +126,7 @@ WHERE DATEDIFF(a.event_date,
 
 
 
+
 -- Задача экзамена 1: 
 -- Для каждого игрока определите: 
 -- - его первую дату входа, 
@@ -187,21 +188,53 @@ WHERE DATEDIFF(a.event_date,
 -- - Найдите среднее количество игр (games_played), сыгранных игроками в их первый день входа.
 -- - Округлите результат до 2 знаков после запятой.
 
+CTE:
+WITH first_activity AS(
+    SELECT player_id,
+    MIN(event_date) AS first_date
+    FROM activity
+    GROUP BY player_id
+)
+SELECT ROUND(AVG(a.games_played),2)
+FROM activity a
+JOIN first_activity f ON a.player_id = f.player_id AND a.event_date = f.first_date;
+
+no CTE:
+SELECT
+ROUND(AVG(a.games_played),2)
+FROM activity a
+WHERE a.event_date = 
+(SELECT MIN(a1.event_date)
+FROM activity a1
+WHERE a.player_id = a1.player_id);
+
 
 -- [ЛЕГКАЯ] Задача 2
 -- - Найдите количество уникальных игроков, которые заходили хотя бы один раз.
+SELECT COUNT(DISTINCT player_id)
+FROM activity
 
 
 -- [ЛЕГКАЯ] Задача 3
 -- - Найдите для каждого игрока его первую и последнюю дату входа.
 -- - Выведите: player_id, first_date, last_date.
 -- - Отсортируйте по player_id.
+SELECT player_id,
+MIN(event_date) AS first_date,
+MAX(event_date) AS last_date
+FROM activity
+GROUP BY player_id;
 
 
 
 -- [СРЕДНЯЯ] Задача 4
 -- - Найдите всех игроков, у которых общее количество сыгранных игр больше 100.
 -- - Выведите только player_id.
+SELECT player_id,
+SUM(games_played)
+FROM activity
+GROUP BY player_id
+HAVING SUM(games_played) >100;
 
 
 -- [СРЕДНЯЯ] Задача 5
