@@ -240,7 +240,12 @@ HAVING SUM(games_played) >100;
 -- [СРЕДНЯЯ] Задача 5
 -- - Найдите игроков, которые заходили хотя бы 2 дня подряд (в любой момент).
 -- - Выведите только player_id.
-
+SELECT a.player_id
+FROM activity a
+JOIN activity a1
+ON a.player_id = a1.player_id AND a.event_date<a1.event_date
+WHERE DATEDIFF(a1.event_date, a.event_date) = 1
+GROUP BY a.player_id;
 
 
 
