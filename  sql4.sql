@@ -48,8 +48,30 @@ ORDER BY player_id ASC;
 -- Цель: Определить дату первой активности каждого игрока и устройство (device_id), которое он использовал в этот день.
 -- Ожидаемый вывод: Таблица с колонками player_id, first_event_date, first_device_id.
 
-SELECT 
+CTE:
+WITH first_day AS(
+    SELECT player_id,
+    MIN(event_date) AS first_date
+    FROM activity
+    GROUP BY player_id
+)
+SELECT a.player_id,
+       a.event_date AS first_event_date,
+       a.device_id AS first_device_id
+FROM activity a 
+JOIN first_day f ON a.player_id = f.player_id AND a.event_date = f.first_date
 
+NO CTE:
+SELECT
+a.player_id,
+a.event_date AS first_event_date,
+a.device_id
+FROM activity a
+WHERE a.event_date = (
+    SELECT MIN(a1.event_date)
+    FROM activity a1
+    WHERE a.player_id = a1.player_id
+)
 
 -- Задание 4 (Средний уровень)
 -- Цель: Найти количество сессий (записей в таблице) и среднее количество сыгранных игр (games_played) для каждого игрока, но только для тех, у кого общее количество сессий больше 1.
