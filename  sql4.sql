@@ -85,7 +85,12 @@ player_id | device_id | event_date | games_played
 3         | 1         | 2024-03-02 | 8
 3         | 4         | 2024-03-03 | 2
 
-
+SELECT player_id,
+COUNT(*) AS session_count,
+AVG(games_played) AS avg_games_played
+FROM activity
+GROUP BY player_id
+HAVING COUNT(*)>1; 
 
 
 
