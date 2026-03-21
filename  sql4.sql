@@ -23,46 +23,18 @@ player_id | device_id | event_date | games_played
 -- Задача 1: 
 -- Найти общее количество уникальных игроков, которые были активны в 2016 году.
 -- Ожидаемый вывод: Одно число — количество игроков.
-SELECT COUNT(DISTINCT player_id)
-FROM activity
-WHERE YEAR(event_date) = 2016;
+
 
 
 -- Задача 2: 
 -- Для каждого игрока (player_id) определить, сколько всего игр (games_played) он сыграл за всё время.
 -- Ожидаемый вывод: Таблица с колонками player_id и total_games_played, отсортированная по player_id по возрастанию.
-SELECT player_id,
-       SUM(games_played) AS total_games_played
-FROM activity
-GROUP BY player_id
-ORDER BY player_id DESC;
+
 
 -- Задание 3 (Средний уровень)
 -- Цель: Определить дату первой активности каждого игрока и устройство (device_id), которое он использовал в этот день.
 -- Ожидаемый вывод: Таблица с колонками player_id, first_event_date, first_device_id.
-CTE:
-WITH first_activity AS(
-SELECT player_id,
-        MIN(event_date) AS first_event
-    FROM activity
-    GROUP BY player_id
-)
-SELECT a.player_id,
-    a.event_date AS first_event_date,
-    a.device_id AS first_device_id
-    FROM activity a
-    JOIN first_activity f ON a.player_id = f.player_id AND a.event_date = f.first_event
 
-no CTE:
-SELECT a.player_id,
-       a.event_date AS first_event_date,
-       a.device_id AS first_device_id
-FROM activity a
-WHERE a.event_date = (
-    SELECT MIN(a1.event_date)
-    FROM activity a1
-    WHERE a1.player_id = a.player_id
-);
 
 
 
@@ -78,108 +50,19 @@ player_id | device_id | event_date | games_played
 3         | 1         | 2024-03-02 | 8
 3         | 4         | 2024-03-03 | 2
 
-CTE:
-WITH player_event AS(
-    SELECT player_id,
-    COUNT(*) AS player_session_count
-    FROM activity 
-    GROUP BY player_id
-    HAVING COUNT(*) > 1
-)
-SELECT a.player_id,
-       p.player_session_count AS session_count,
-       AVG(a.games_played) AS avg_games_per_session
-FROM activity a 
-JOIN player_event p ON a.player_id = p.player_id
-GROUP BY a.player_id
 
- no CTE:
-SELECT player_id,
-    COUNT(*) AS session_count,
-    AVG(games_played) AS avg_games_per_session
-FROM activity
-GROUP BY player_id
-HAVING COUNT(*) > 1;
 
 
 
 -- Задание 5 (Средний/Сложный уровень)
 -- Цель: Найти всех игроков, которые вернулись в игру на следующий день после своей первой активности (т.е. зашли и в первый, и во второй день). Под "следующим днем" подразумевается дата, следующая за first_event_date, независимо от того, были ли пропуски в дальнейшем.
 -- Ожидаемый вывод: Таблица с колонкой player_id, содержащая только ID таких игроков.
-CTE:
-WITH first_date AS (
-    SELECT player_id,
-            MIN(event_date) AS first_event
-    FROM activity
-    GROUP BY player_id
-)
-SELECT a.player_id
-FROM activity a
-JOIN first_date f ON a.player_id = f.player_id
-WHERE DATEDIFF(a.event_date, f.first_event) = 1
 
-no CTE:
-SELECT a.player_id
-FROM activity a
-WHERE DATEDIff(a.event_date,
-    (SELECT
-        MIN(a1.event_date)
-        FROM activity a1
-        WHERE a.player_id = a1.player_id)
-)= 1;
 
 -- Задание 6 (Сложный уровень)
 -- Цель: Рассчитать "долю удержания" игроков на 7-й день. Доля удержания — это процент игроков, которые были активны (имели хотя бы одну сессию) ровно через 7 дней после своей первой активности (т.е. на first_event_date + 7).
 -- Уточнение: Считайте, что если у игрока есть запись с event_date, в точности равной дате его первого входа + 7 дней, то он "удержан".
 -- Ожидаемый вывод: Одно число retention_rate, округленное до 2 знаков после запятой (в процентах или долях, уточните в формулировке задачи).
-
-WITH all_players AS(
-    SELECT COUNT(DISTINCT(player_id)) AS count_players
-    FROM activity
-),
-first_date AS(
-    SELECT player_id,
-           MIN(event_date) AS first_event_date
-    FROM activity
-    GROUP BY player_id
-),
-seven_day AS(
-    SELECT COUNT(a.player_id) AS seven_day_players
-    FROM activity a 
-    JOIN first_date f ON a.player_id = f.player_id
-                      AND DATEDIFF(a.event_date, f.first_event_date)=7
-)
-SELECT ROUND(seven_day_players/count_players * 100.0, 2) AS retention_rate
-FROM all_players, seven_day
-
-
-
-
-------------------------------------
--- Задание 7 (Сложный уровень, аналитика)
--- Цель: Для каждого календарного дня (даты из колонки event_date по всем игрокам) рассчитать:
--- Количество активных игроков в этот день (DAU - Daily Active Users).
--- Количество новых игроков в этот день (тех, для кого эта дата является first_event_date).
--- Ожидаемый вывод: Таблица с колонками event_date, dau, new_players, отсортированная по event_date.
--- Эти задания охватывают ключевые концепции SQL: агрегацию (COUNT, SUM, AVG), группировку (GROUP BY), фильтрацию (HAVING, подзапросы в WHERE), работу с датами, использование оконных функций (ROW_NUMBER(), FIRST_VALUE()) и сложную логику для аналитических расчетов.
-
-
-
-
--- Задание 8 (Сложный уровень, оконные функции)
--- Цель: Для каждой записи активности (player_id, event_date) найти "максимальное накопленное" количество игр. Это означает: для каждой даты игрока нужно знать рекордное (максимальное) общее количество игр, которое он когда-либо набрал ко всем предыдущим датам включительно.
--- Пример для понимания:
--- 2016-03-01, сыграно 5 → накопленная сумма = 5, максимум = 5
--- 2016-03-02, сыграно 0 → накопленная сумма = 5, максимум = 5
--- 2016-03-03, сыграно 3 → накопленная сумма = 8, максимум = 8
--- 2016-03-04, сыграно 1 → накопленная сумма = 9, максимум = 8 (рекорд всё еще 8)
--- Ожидаемый вывод: Таблица с исходными колонками и новой колонкой running_max_games.
-
-
--- Задание 9 (Сложный уровень, анализ сессий)
--- Цель: Определить "время до следующей активности" для каждого игрока. Для каждой даты входа игрока нужно найти, через сколько дней произошел его следующий вход. Для последней даты активности игрока значение должно быть NULL.
--- Уточнение: Если игрок заходил несколько раз в один день (по условию задачи не может, т.к. (player_id, event_date) — PK), но в реальности такое возможно, считайте, что даты уникальны.
--- Ожидаемый вывод: Таблица с колонками player_id, event_date, days_until_next_activity.
 
 
 
@@ -243,62 +126,16 @@ FROM all_players, seven_day
 -- [ЛЕГКАЯ] Задача 1
 -- - Найдите среднее количество игр (games_played), сыгранных игроками в их первый день входа.
 -- - Округлите результат до 2 знаков после запятой.
-no CTE: 
-SELECT ROUND(AVG(a.games_played),2) AS avg_ames_played
-FROM activity a
-WHERE a.event_date = (
-    SELECT MIN(a1.event_date)
-    FROM activity a1
-    WHERE a.player_id = a1.player_id
-);
-
-CTE:
-WITH first_date AS(
-    SELECT player_id,
-    MIN(event_date) AS first_event
-    FROM activity
-    GROUP BY player_id
-)
-SELECT ROUND(AVG(a.games_played),2) AS avg_games_played
-FROM activity a
-JOIN first_date f ON a.player_id = f.player_id AND f.first_event =a.event_date;
-
 
 
 -- [ЛЕГКАЯ] Задача 2
 -- - Найдите количество уникальных игроков, которые заходили хотя бы один раз.
-no CTE:
-SELECT COUNT(DISTINCT(a.player_id))
-FROM activity a
-WHERE a.player_id IN(
-    SELECT player_id
-    FROM activity
-    GROUP BY player_id
-    HAVING MIN(event_date)<> MAX(event_date)
-);
 
-CTE:
-WITH more_one_day AS(
-    SELECT player_id
-    FROM activity
-    GROUP BY player_id
-    HAVING MIN(event_date)<>MAX(event_date)
-)
-SELECT COUNT(player_id)
-FROM more_one_day
 
 -- [ЛЕГКАЯ] Задача 3
 -- - Найдите для каждого игрока его первую и последнюю дату входа.
 -- - Выведите: player_id, first_date, last_date.
 -- - Отсортируйте по player_id.
-
-SELECT player_id,
-MIN(event_date) AS first_date,
-MAX(event_date) AS last_date
-FROM activity
-GROUP BY player_id
-HAVING MIN(event_date) <> MAX(event_date)
-ORDER BY player_id;
 
 
 
@@ -306,20 +143,10 @@ ORDER BY player_id;
 -- - Найдите всех игроков, у которых общее количество сыгранных игр больше 100.
 -- - Выведите только player_id.
 
-SELECT player_id
-FROM activity
-GROUP BY player_id
-HAVING SUM(games_played) > 100
 
 -- [СРЕДНЯЯ] Задача 5
 -- - Найдите игроков, которые заходили хотя бы 2 дня подряд (в любой момент).
 -- - Выведите только player_id.
-SELECT a.player_id
-FROM activity a 
-JOIN activity a1 ON a.player_id = a1.player_id
-                AND a.event_date < a1.event_date
-WHERE DATEDIFF(a1.event_date, a.event_date) = 1
-GROUP BY a.player_id
 
 
 
@@ -327,43 +154,17 @@ GROUP BY a.player_id
 -- [СРЕДНЯЯ] Задача 6
 -- - Найдите день с максимальным количеством уникальных игроков (DAU).
 -- - Выведите: event_date, dau.
-    SELECT event_date,
-           COUNT(player_id) AS dau
-    FROM activity
-    GROUP BY event_date
-    ORDER BY dau DESC
-    LIMIT 1;
-
+   
 
 
 -- [СЛОЖНАЯ] Задача 7
 -- - Для каждого игрока найдите дату его второго входа (если она есть).
 -- - Выведите: player_id, second_date.
 -- - Если второй даты нет, такого игрока не выводить.
-WITH first_event AS(
-    SELECT player_id,
-            MIN(event_date) AS first_date
-    FROM activity
-    GROUP BY player_id
-)
-SELECT a.player_id,
-       MIN(a.event_date) AS second_date
-FROM activity a
-JOIN first_event f ON a.player_id = f.player_id 
-                   AND a.event_date>f.first_date
-GROUP BY a.player_id
+
     
 
 -- [СЛОЖНАЯ] Задача 8
 -- - Найдите долю игроков, у которых первый и последний день входа не совпадают (то есть были активны минимум 2 дня).
 -- - Округлите до 2 знаков после запятой.
 
-WITH any_days AS(
-    SELECT player_id
-    FROM activity
-    GROUP BY player_id
-    HAVING MIN(event_date)<> MAX(event_date)
-)
-SELECT ROUND(
-    (SELECT COUNT(*) FROM any_days)*1.0/
-    (SELECT COUNT(DISTINCT(player_id)) FROM activity), 2) AS fraction
