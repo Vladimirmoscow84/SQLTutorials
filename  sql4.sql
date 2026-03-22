@@ -293,7 +293,30 @@ WHERE DAU = (SELECT MAX(DAU) FROM max_days);
 -- - Для каждого игрока найдите дату его второго входа (если она есть).
 -- - Выведите: player_id, second_date.
 -- - Если второй даты нет, такого игрока не выводить.
+CTE:
+WITH first_day AS(
+    SELECT player_id,
+    MIN(event_date) AS first_date
+    FROM activity
+    GROUP BY player_id
+)
+SELECT a.player_id,
+MIN(a.event_date) AS second_day
+FROM activity a JOIN first_day f ON a.player_id = f.player_id
+                                AND a.event_date >f.first_date
+GROUP BY player_id;
 
+no CTE:
+SELECT a.player_id,
+MIN(a.event_date) AS second_date
+FROM activity a
+WHERE a.event_date > (
+    SELECT
+    MIN(a1.event_date)
+    FROM activity a1
+    WHERE a.player_id = a1.player_id
+)
+GROUP BY a.player_id;
     
 
 -- [СЛОЖНАЯ] Задача 8
