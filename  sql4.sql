@@ -127,6 +127,8 @@ WHERE DATEDIFF(a.event_date,
 
 
 
+
+
 -- Задача экзамена 1: 
 -- Для каждого игрока определите: 
 -- - его первую дату входа, 
@@ -322,4 +324,13 @@ GROUP BY a.player_id;
 -- [СЛОЖНАЯ] Задача 8
 -- - Найдите долю игроков, у которых первый и последний день входа не совпадают (то есть были активны минимум 2 дня).
 -- - Округлите до 2 знаков после запятой.
+WITH more_1_day AS(
+    SELECT player_id
+    FROM activity
+    GROUP BY player_id
+    HAVING MIN(event_date) <> MAX(event_date)
+)
 
+SELECT ROUND(
+    (SELECT COUNT(*) FROM more_1_day) * 1.0 /
+    (SELECT COUNT(DISTINCT player_id) FROM activity),2)
