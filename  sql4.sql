@@ -258,14 +258,36 @@ WITH 2_days AS(
 )
 
 SELECT DISTINCT player_id
-FROM 2_days
+FROM 2_days;
 
 
 -- [СРЕДНЯЯ] Задача 6
 -- - Найдите день с максимальным количеством уникальных игроков (DAU).
 -- - Выведите: event_date, dau.
+CTE 1 var:
+WITH max_days AS(
+    SELECT event_date,
+    COUNT(player_id) AS count_day_players
+    FROM activity
+    GROUP BY event_date
+)
+SELECT event_date,
+count_day_players AS DAU
+FROM max_days
+ORDER BY count_day_players DESC
+LIMIT 1;
    
-
+CTE 2 var:
+WITH max_days AS(
+    SELECT event_date,
+    COUNT(player_id) AS DAU
+    FROM activity
+    GROUP BY event_date
+)
+SELECT event_date,
+DAU 
+FROM max_days
+WHERE DAU = (SELECT MAX(DAU) FROM max_days);
 
 -- [СЛОЖНАЯ] Задача 7
 -- - Для каждого игрока найдите дату его второго входа (если она есть).
