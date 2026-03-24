@@ -180,6 +180,18 @@ ORDER BY author;
 -- Найти все выдачи книг жанра 'Classics'
 -- Вывести: название книги, дата выдачи, имя читателя
 -- Отсортировать по дате выдачи
+no CTE:
+SELECT
+b.title,
+l.loan_date,
+bor.name
+FROM loans l 
+JOIN books b ON b.id = l.book_id
+JOIN borrowers bor ON bor.id = l.borrower_id
+WHERE b.genre = 'Classics'
+ORDER BY l.loan_date;
+
+
 
 --задача 2В легкая агрегация
 -- Сколько всего книг каждого жанра?
