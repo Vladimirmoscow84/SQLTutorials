@@ -198,6 +198,13 @@ ORDER BY l.loan_date;
 -- Вывести: жанр, количество книг
 -- Отсортировать по количеству (убывание)
 
+SELECT 
+genre AS "Жанр",
+COUNT(*) AS "Количество книг"
+FROM books
+GROUP BY genre
+ORDER BY "Количество книг" DESC;
+
 
 
 
