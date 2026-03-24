@@ -155,71 +155,43 @@ INSERT INTO loans (id, book_id, library_code, borrower_id, loan_date, return_dat
 -- Вывести: название, автора
 -- Отсортировать по названию
 
-SELECT title as "Название книги",
-       author AS "Автор книги"
-FROM books
-WHERE genre = 'Classics'
+SELECT title,
+    author
+    FROM books
+    WHERE genre = 'Classics'
 ORDER BY title;
 
 
 
+
+
 --задача 2А легкая
--- Найти все книги жанра 'Classics', у которых в названии есть слово "и"
+-- Найти все книги жанра 'Classics', у которых в названии есть слово "и" (маленькая)
 -- Вывести: название, автора, отсортировать по автору
 
-SELECT title,author
+SELECT title,
+author
 FROM books
-WHERE genre = 'Classics' AND (title LIKE 'и %' OR title LIKE '% и %' OR title LIKE '% и')
+WHERE genre = 'Classics' AND (title LIKE 'и %'  OR title LIKE '% и %' ORtitle LIKE '% и')
 ORDER BY author;
+
 
 --задача 2Б Легкая с JOIN
 -- Найти все выдачи книг жанра 'Classics'
 -- Вывести: название книги, дата выдачи, имя читателя
 -- Отсортировать по дате выдачи
-без CTE 
-SELECT b.title, l.loan_date, bor.name
-FROM loans l 
-    JOIN books b ON l.book_id=b.id
-    JOIN borrowers bor ON l.borrower_id = bor.id
-WHERE b.genre = 'Classics'
-ORDER BY l.loan_date ASC;
-
-c CTE:
-WITH loans_classics AS(
-    SELECT b.title AS book_title,
-           l.loan_date,
-           bor.name AS borrower_name
-    FROM loans l 
-        JOIN books b ON l.book_id = b.id
-        JOIN borrowers bor ON l.borrower_id = bor.id
-        WHERE b.genre = 'Classics'
-)
-SELECT 
-    book_title AS title,
-    loan_date,
-    borrower_name AS name 
-    FROM loans_classics
-    ORDER BY loan_date ASC;
 
 --задача 2В легкая агрегация
 -- Сколько всего книг каждого жанра?
 -- Вывести: жанр, количество книг
 -- Отсортировать по количеству (убывание)
 
-SELECT genre AS 'Жанр', 
-COUNT(*) AS 'Количество книг'
-FROM books
-GROUP BY genre
-ORDER BY COUNT(*) DESC;
 
 
 
 --задача 3 легкая
 -- Сколько всего книг в таблице books?
 -- Вывести общее количество
-SELECT 
-    COUNT(*) AS 'Общее количество'
-    FROM books;
 
 
 --задача 4 легкая
@@ -227,40 +199,12 @@ SELECT
 -- Вывести: id выдачи, дату выдачи, дату возврата
 -- Отсортировать по дате выдачи
 
-SELECT id,
-       loan_date,
-       return_date
-    FROM loans
-    WHERE loan_date BETWEEN '2025-01-01' AND '2025-01-31' (другой вариант: WHERE loan_date >='2025-01-01' AND loan_date <='2025-01-31')
-    ORDER BY loan_date ASC;                                (другой вариант: WHERE YEAR(loan_date) = '2025' AND MONTH(loan_date) = '01')
+
 
 --задача 5a средняя
 -- Найти читателей с премиум-подпиской, которые брали книги
 -- Вывести: имя читателя, количество взятых книг
 -- Отсортировать по количеству книг (убывание)
-без CTE:
-SELECT b.name AS reader_name,
-       COUNT(l.borrower_id) AS count_books
-    FROM loans l 
-    JOIN borrowers b ON l.borrower_id = b.id
-    WHERE b.membership_type = 'Premium'
-    GROUP BY b.id, b.name
-    ORDER BY COUNT(l.borrower_id) DESC;
-
-вариантс с CTE:
-WITH premium_readers AS(
-    SELECT b.id AS reader_id,
-           b.name AS reader_name,
-           COUNT(l.borrower_id) AS count_books
-    FROM loans l
-        JOIN borrowers b ON b.id = l.borrower_id
-   WHERE b.membership_type = 'Premium'
-   GROUP BY b.id, b.name
-)
-SELECT reader_name,
-       count_books
-       FROM premium_readers
-ORDER BY count_books DESC;
 
 
 
@@ -269,58 +213,14 @@ ORDER BY count_books DESC;
 -- Вывести: название книги, имя читателя, срок выдачи (в днях)
 -- Отсортировать по сроку выдачи (убывание)
 
-без CTE:
-SELECT b.title,
-        bor.name,
-        DATEDIFF(l.return_date, l.loan_date) AS loan_duration
-        FROM loans l 
-        JOIN books b ON l.book_id = b.id
-        JOIN borrowers bor  ON l.borrower_id = bor.id
-        ORDER BY loan_duration DESC 
-        LIMIT 5;
 
-вариант c CTE:
-WITH loan_longs AS (
-    SELECT b.title AS book_title,
-            bor.name AS client_name,
-            DATEDIFF(return_date, loan_date) AS loan_duration
-    FROM loans l 
-        JOIN books b ON l.book_id = b.id
-        JOIN borrowers bor ON l.borrower_id = bor.id
-)
-SELECT book_title,
-       client_name,
-       loan_duration 
-       FROM loan_longs
-ORDER BY loan_duration DESC
-LIMIT 5;
 
 --задача 5c средняя
 -- В каком городе больше всего выдач?
 -- Вывести: город, количество выдач
 -- Отсортировать по количеству выдач (убывание)
 
-без CTE:
-SELECT lib.city AS "Город",
-       COUNT(l.library_code) AS "Количество выдач"
-       FROM loans l
-       JOIN libraries lib ON l.library_code= lib.code
-       GROUP BY lib.city
-       ORDER BY 2 DESC;
 
-вариант с CTE:
-WITH city_loans AS(
-    SELECT 
-        lib.city AS city,
-        COUNT(l.library_code) AS loans_count
-        FROM loans l
-            JOIN libraries lib ON l.library_code = lib.code
-            GROUP BY lib.city
-)
-SELECT city,
-      loans_count
-      FROM city_loans
-ORDER BY loans_count DESC;
 
 
 
@@ -328,139 +228,38 @@ ORDER BY loans_count DESC;
 -- Показать полную информацию о всех выдачах
 -- Вывести: название книги, имя библиотеки, имя читателя, даты
 -- Отсортировать по дате выдачи
-вариант без CTE:
-SELECT b.title AS "Название книги",
-       lib.name AS "Имя библиотеки",
-       bor.name AS "Имя читателя",
-       l.loan_date AS "Дата выдачи"
-       FROM loans l
-        JOIN books b ON b.id = l.book_id
-        JOIN libraries lib ON l.library_code = lib.code
-        JOIN borrowers bor ON l.borrower_id = bor.id
-ORDER BY l.loan_date;
 
 --задача 6 средняя
 -- Сколько выдач было в каждой библиотеке?
 -- Вывести: название библиотеки, город, количество выдач
 -- Отсортировать по количеству выдач (убывание)
-вариант без CTE:
-SELECT lib.name,
-       lib.city,
-       COUNT(l.library_code) AS loans_count
-FROM loans l
-JOIN libraries lib ON l.library_code = lib.code
-GROUP BY lib.name, lib.city
-ORDER BY loans_count DESC;
 
-вариант с CTE:
-WITH t1 AS(
-    SELECT lib.name AS lib_name,
-            lib.city AS lib_city,
-            COUNT(l.library_code) AS lib_count
-    FROM loans l 
-    JOIN libraries lib ON l.library_code = lib.code
-    GROUP BY lib.city, lib.name
-)
-SELECT lib_name,
-     lib_city,
-     lib_count
-FROM t1
-ORDER BY 3 DESC;
 
 --задача 7 средняя
 -- Найти жанры, у которых больше 2 книг в каталоге
 -- Вывести: жанр, количество книг
-SELECT genre,
-       COUNT(*) AS count_genre
-       from books
-       GROUP BY genre
-       HAVING COUNT(*) >2
+
 
 
 
 --задача 8 средняя ЦТЕ
 -- Найти книги, которые никогда не выдавались
 -- Вывести: название, автор, жанр
-first var:
-WITH books_stats AS(
-    SELECT b.title,
-           b.author,
-           b.genre,
-           l.book_id
-        FROM loans l 
-         RIGHT JOIN books b ON l.book_id = b.id
-)
-SELECT title,
-       author,
-       genre
-FROM books_stats
-WHERE book_id IS NULL;
 
-second var:
-WITH st_books AS(
-    SELECT b.title,
-        b.author,
-        b.genre,
-        l.book_id
-    FROM books b
-    LEFT JOIN loans l ON b.id = l.book_id
-)
-SELECT title,
-        author,
-        genre
-    FROM st_books
-    WHERE book_id is NULL;
 
 --задача 9a средняя ЦТЕ
 -- Найти читателей, которые брали больше книг, чем средний читатель
 -- Вывести: имя читателя, тип членства, количество взятых книг
 -- Отсортировать по количеству книг
 
-WITH reader_stats AS(
-    SELECT bor.id,
-        bor.name,
-        bor.membership_type,
-        COUNT(l.id) AS books_taken
-    FROM borrowers bor 
-    LEFT JOIN loans l ON bor.id = l.borrower_id
-    GROUP BY bor.id, bor.name, bor.membership_type
-),
-avg_taken_book AS(
-    SELECT AVG(books_taken) AS avg_taken
-    FROM reader_stats
-) 
-SELECT
-       name, 
-       membership_type,
-       books_taken
-    FROM reader_stats CROSS JOIN avg_taken_book
-    WHERE books_taken > avg_taken
-    ORDER BY books_taken DESC;    
+
 
 --задача 9b средняя ЦТЕ
 -- Найти библиотеки, в которых было больше выдач, 
 -- чем в среднем по всем библиотекам
 -- Вывести: название библиотеки, город, количество выдач
 -- Отсортировать по количеству выдач (убывание)
-WITH lib_stats AS(
-    SELECT lib.code,
-            lib.name,
-            lib.city,
-            COUNT(l.id) AS books_taken
-    FROM libraries lib
-        LEFT JOIN loans l ON lib.code = l.library_code
-    GROUP BY lib.code, lib.name, lib.city
-),
-    avg_loans AS(
-        SELECT AVG(books_taken) AS avg_taken
-        FROM lib_stats
-    )
-    SELECT name,
-           city,
-           books_taken
- FROM lib_stats CROSS JOIN avg_loans
-    WHERE books_taken > avg_taken
-    ORDER BY books_taken DESC;
+
 
 --задача 9с средняя ЦТЕ
 -- Найти жанры книг, которые брали чаще среднего
@@ -468,74 +267,21 @@ WITH lib_stats AS(
 -- Вывести: жанр, количество выдач этого жанра
 -- Отсортировать по количеству выдач (убывание)
 
-WITH book_stats AS(
-    SELECT b.genre,
-           COUNT(l.id) AS books_taken
-    FROM books b
-    JOIN loans l ON b.id = l.book_id
-    GROUP BY b.genre
-    ),
-    avg_loans AS(
-        SELECT AVG(books_taken) AS avg_taken
-        FROM book_stats
-    )
-    SELECT genre,
-           books_taken
-    FROM book_stats CROSS JOIN avg_loans
-    WHERE books_taken > avg_taken
-    ORDER BY books_taken DESC;
+
 
 
 --задача 10a
 -- Найти самый популярный день недели для выдачи книг
 -- Вывести: день недели, количество выдач
 -- Подсказка: DAYNAME(loan_date)
-1 var
-SELECT 
-    DAYNAME(loan_date) AS week_day,
-    COUNT(*)
-    FROM loans
-    GROUP BY DAYNAME(loan_date)
-    ORDER BY COUNT(*) DESC
-    LIMIT 1;
 
- 2 var 
- WITH week_stats AS(
-    SELECT DAYNAME(loan_date) AS week_day,
-           COUNT(*) AS week_loans
-    FROM loans
-    GROUP BY DAYNAME(loan_date)
- )
- SELECT week_day,
-        week_loans
-FROM week_stats 
-WHERE week_loans = (SELECT MAX(week_loans) FROM week_stats)
-ORDER BY week_loans;
 --задача 10b
 -- Найти самый популярный МЕСЯЦ для выдачи книг
 -- (в каком месяце чаще всего выдавали книги)
 -- Вывести: месяц (название), количество выдач
 -- Отсортировать по количеству выдач (убывание)
 -- Показать только самый популярный месяц
- 1 var
-SELECT MONTHNAME(loan_date) AS month_name,
-       COUNT(*) AS loans_of_months
-FROM loans
-GROUP BY MONTHNAME(loan_date)
-ORDER BY loans_of_months DESC
-LIMIT 1;
 
-2 var
-WITH month_stats AS(
-    SELECT MONTHNAME(loan_date) AS month_loans,
-    COUNT(*) AS count_loans
-    FROM loans
-    GROUP BY MONTHNAME(loan_date)
-)
-SELECT month_loans,
-       count_loans
-FROM month_stats
-WHERE count_loans = (SELECT MAX(count_loans) FROM month_stats)
 
 --Задача 11А (средняя)
 -- Для каждого читателя найти:
@@ -552,23 +298,7 @@ WHERE count_loans = (SELECT MAX(count_loans) FROM month_stats)
 -- Отсортировать по количеству книг (убывание)
 -- Показать только топ-5
 
-WITH reader_stats AS(
-    SELECT bor.id,
-           bor.name,
-           COUNT(l.id) AS books_count,
-           MIN(loan_date) AS first_loan,
-           MAX(loan_date) AS last_loan
-    FROM borrowers bor 
-    LEFT JOIN loans l ON bor.id = l.borrower_id
-    GROUP BY bor.id, bor.name
-)
-SELECT name,
-       books_count,
-       first_loan,
-       last_loan
-    FROM reader_stats
-    ORDER BY books_count DESC
-    LIMIT 5;
+
 
 --Задача 11Б (сложная)
 -- Для каждого читателя найти:
@@ -599,35 +329,7 @@ SELECT name,
 
 -- Отсортировать по количеству выдач (убывание)
 -- Показать только топ-5
-c CTE:
-WITH books_stats AS(
-    SELECT b.id,
-           b.title,
-           b.author,
-           b.genre,
-           COUNT(l.book_id) AS book_count
-    FROM books b
-    LEFT JOIN loans l ON b.id = l.book_id
-    GROUP BY b.id, b.title, b.author, b.genre
-)
-SELECT title,
-       author,
-       genre,
-       book_count
-FROM books_stats
-ORDER BY book_count DESC
-LIMIT 5;
 
-without CTE:
-SELECT b.title,
-       b.author,
-       b.genre,
-       COUNT(l.book_id) AS books_count
-FROM books b 
-LEFT JOIN loans l ON b.id = l.book_id
-GROUP BY b.id, b.title, b.author, b.genre
-ORDER BY COUNT(l.book_id) DESC
-LIMIT 5;
 
 --Задача 13 (средняя)
 -- Для каждого жанра найти:
@@ -642,34 +344,7 @@ LIMIT 5;
 -- среднее выдач на книгу (округлить до 2 знаков)
 
 -- Отсортировать по среднему количеству выдач на книгу (убывание)
-
- с CTE:
- WITH genre_stats AS(
-    SELECT b.genre,
-            COUNT(DISTINCT b.id) AS total_books,
-            COUNT(l.id) AS count_loans,
-            ROUND(COUNT(l.id)*1.0/COUNT(DISTINCT b.id),2) AS avg_loans
-    FROM books b 
-    LEFT JOIN loans l ON b.id = l.book_id
-    GROUP BY b.genre            
- )
- SELECT genre,
-        total_books,
-        count_loans,
-        avg_loans
-FROM genre_stats
-ORDER BY avg_loans DESC;
-
-без CTE:
-SELECT 
-    b.genre,
-    COUNT(DISTINCT b.id) AS count_genre_boooks,
-    COUNT(l.id) AS all_loans_genre,
-    ROUND( COUNT(l.id) * 1.0 / COUNT(DISTINCT b.id),2) AS median_loans_by_genre
-FROM books b
-LEFT JOIN loans l ON l.book_id = b.id
-GROUP BY b.genre
-ORDER BY median_loans_by_genre DESC;
+ 
 
 --Задача 14 (средняя)
 -- Проанализировать активность читателей по типам членства
@@ -690,33 +365,5 @@ ORDER BY median_loans_by_genre DESC;
 
 -- Отсортировать по среднему количеству книг (убывание)
 
-без CTE:
-SELECT bor.membership_type,
-       COUNT(bor.id) AS total_readers,
-       COUNT(l.id) AS total_books,
-       ROUND(COUNT(l.id)*1.0/COUNT(bor.id),1) AS avg_books,
-       ROUND(COUNT(CASE WHEN l.id IS NOT NULL THEN 1 END) *100.0/COUNT(bor.id), 1) AS percent_active_readers
-FROM borrowers bor
-LEFT JOIN loans l ON bor.id = l.borrower_id
-GROUP BY bor.membership_type
-ORDER BY avg_books DESC;
 
-c CTE:
-WITH readers_stats AS(
-    SELECT bor.membership_type,
-          COUNT(*) AS total_readers,
-          COUNT(l.id) AS total_books,
-          ROUND(COUNT(l.id)*1.0/COUNT(*),1) AS avg_books,
-          ROUND(COUNT(CASE WHEN l.id IS NOT NULL THEN 1 END) *100/COUNT(*),1) AS active_percent
-    FROM borrowers bor 
-    LEFT JOIN loans l ON bor.id = l.borrower_id
-    GROUP BY bor.membership_type
-)
-SELECT membership_type,
-       total_readers,
-       total_books,
-       avg_books,
-       active_percent
-FROM readers_stats
-ORDER BY avg_books DESC;
 
