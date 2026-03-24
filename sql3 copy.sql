@@ -211,12 +211,22 @@ ORDER BY "Количество книг" DESC;
 --задача 3 легкая
 -- Сколько всего книг в таблице books?
 -- Вывести общее количество
+SELECT COUNT(*) FROM books;
 
 
 --задача 4 легкая
 -- Найти все выдачи за январь 2025 года
 -- Вывести: id выдачи, дату выдачи, дату возврата
 -- Отсортировать по дате выдачи
+
+SELECT id,
+loan_date,
+return_date
+FROM loans
+WHERE loan_date BETWEEN '2025-01-01' AND '2025-01-31'
+-- WHERE YEAR(loan_date) = '2025' AND MONTH(loan_date) = '01'
+-- WHERE loan_date>'2025-01-01' AND loan_date <'2025-01-31'
+ORDER BY loan_date;
 
 
 
