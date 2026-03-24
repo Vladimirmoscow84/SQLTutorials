@@ -295,11 +295,14 @@ ORDER BY COUNT(l.library_code) DESC; -- COUNT(*)
 -- Отсортировать по дате выдачи
 
 SELECT b.title,
-lib.name,
-bor.name,
-l.loan_date,
-l.return_date
-FROM loans l
+       lib.name,
+       bor.name,
+       l.loan_date,
+       l.return_date
+FROM loans l JOIN books b ON l.book_id = b.id
+             JOIN borrowers bor ON l.borrower_id = bor.id
+             JOIN libraries lib ON l.library_code = lib.code
+ORDER BY 4 ASC;
 
 --задача 6 средняя
 -- Сколько выдач было в каждой библиотеке?
