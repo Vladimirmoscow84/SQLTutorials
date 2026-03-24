@@ -235,14 +235,46 @@ ORDER BY loan_date;
 -- Вывести: имя читателя, количество взятых книг
 -- Отсортировать по количеству книг (убывание)
 
+SELECT bor.name,
+COUNT(*)
+FROM loans l
+JOIN borrowers bor ON l.borrower_id = bor.id
+WHERE bor.membership_type = 'Premium'
+GROUP by bor.name
+ORDER BY COUNT(*) DESC; 
+
 
 
 --задача 5b средняя
 -- Найти топ-5 самых долгих выдач
 -- Вывести: название книги, имя читателя, срок выдачи (в днях)
 -- Отсортировать по сроку выдачи (убывание)
+no CTE: --(оптимальный)
+SELECT b.title,
+bor.name,
+DATEDIFF(l.return_date, l.loan_date) AS "Срок выдачи"
+FROM loans l
+JOIN borrowers bor ON l.borrower_id = bor.id
+JOIN books b ON l.book_id = b.id
+WHERE l.return_date IS NOT NULL
+ORDER BY "Срок выдачи" DESC
+LIMIT 5;
 
-
+CTE: -- (избыточен)
+WITH loan_stat AS(
+    SELECT b.title,
+           bor.name,
+           DATEDIFF(l.return_date, l.loan_date) AS duration
+    FROM loans l JOIN books b ON l.book_id = b.id
+                JOIN borrowers bor ON l.borrower_id = bor.id
+    WHERE l.return_date IS NOT NULL
+)
+SELECT title,
+name,
+duration
+FROM loan_stat
+ORDER BY duration DESC
+LIMIT 5;
 
 --задача 5c средняя
 -- В каком городе больше всего выдач?
