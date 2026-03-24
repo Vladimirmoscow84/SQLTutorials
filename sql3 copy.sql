@@ -336,13 +336,37 @@ ORDER BY 3 DESC;
 --задача 7 средняя
 -- Найти жанры, у которых больше 2 книг в каталоге
 -- Вывести: жанр, количество книг
-
+SELECT genre,
+       COUNT(genre)
+       FROM books
+GROUP BY genre
+HAVING COUNT(genre) > 2;
 
 
 
 --задача 8 средняя ЦТЕ
 -- Найти книги, которые никогда не выдавались
 -- Вывести: название, автор, жанр
+no CTE:
+SELECT b.title,
+       b.author,
+       b.genre
+FROM books b LEFT JOIN loans l ON b.id = l.book_id
+WHERE l.book_id IS NULL;
+
+CTE:
+WITH books_stats AS(
+    SELECT b.id,
+           b.title,
+           b.author,
+           b.genre
+    FROM books b LEFT JOIN loans l ON b.id = l.book_id
+    WHERE l.book_id IS NULL
+)
+SELECT title,
+       author,
+       genre 
+FROM books_stats;
 
 
 --задача 9a средняя ЦТЕ
