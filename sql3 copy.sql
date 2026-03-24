@@ -280,15 +280,26 @@ LIMIT 5;
 -- В каком городе больше всего выдач?
 -- Вывести: город, количество выдач
 -- Отсортировать по количеству выдач (убывание)
-
-
-
+no CTE:
+SELECT lib.city,
+COUNT(l.library_code)  --COUNT(*)
+FROM loans l
+JOIN libraries lib ON l.library_code = lib.code
+GROUP BY lib.city
+ORDER BY COUNT(l.library_code) DESC; -- COUNT(*)
 
 
 --задача 5d средняя
 -- Показать полную информацию о всех выдачах
 -- Вывести: название книги, имя библиотеки, имя читателя, даты
 -- Отсортировать по дате выдачи
+
+SELECT b.title,
+lib.name,
+bor.name,
+l.loan_date,
+l.return_date
+FROM loans l
 
 --задача 6 средняя
 -- Сколько выдач было в каждой библиотеке?
