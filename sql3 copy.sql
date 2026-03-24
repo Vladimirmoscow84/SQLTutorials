@@ -309,6 +309,29 @@ ORDER BY 4 ASC;
 -- Вывести: название библиотеки, город, количество выдач
 -- Отсортировать по количеству выдач (убывание)
 
+no CTE:
+SELECT lib.name,
+       lib.city,
+       COUNT(l.library_code) AS counts
+FROM loans l JOIN libraries lib ON l.library_code = lib.code
+GROUP BY lib.name, lib.city
+ORDER BY counts DESC;
+
+CTE:
+WITH lib_stats AS(
+    SELECT lib.name,
+            lib.city,
+            COUNT(*) AS count_loans
+    FROM loans l JOIN libraries lib ON l.library_code = lib.code
+    GROUP BY lib.name, lib.city
+)
+
+SELECT name,
+       city,
+       count_loans
+FROM lib_stats
+ORDER BY 3 DESC;
+
 
 --задача 7 средняя
 -- Найти жанры, у которых больше 2 книг в каталоге
