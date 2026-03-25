@@ -400,6 +400,27 @@ ORDER BY 3 DESC;
 -- Вывести: название библиотеки, город, количество выдач
 -- Отсортировать по количеству выдач (убывание)
 
+WITH lib_stats AS(
+    SELECT lib.code,
+           lib.name,
+           lib.city,
+           COUNT(*) AS counts
+    FROM libraries lib JOIN loans l ON l.library_code = lib.code
+    GROUP BY lib.code, lib.name, lib.city
+),
+avg_libs AS(
+    SELECT AVG(counts) AS avg_counts
+    FROM lib_stats
+)
+SELECT l.name,
+       l.city,
+       l.counts
+FROM lib_stats l CROSS JOIN avg_libs a
+WHERE l.counts > a.avg_counts
+ORDER BY l.counts DESC;
+       
+
+
 
 --задача 9с средняя ЦТЕ
 -- Найти жанры книг, которые брали чаще среднего
