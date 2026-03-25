@@ -372,7 +372,25 @@ FROM books_stats;
 --задача 9a средняя ЦТЕ
 -- Найти читателей, которые брали больше книг, чем средний читатель
 -- Вывести: имя читателя, тип членства, количество взятых книг
--- Отсортировать по количеству книг
+-- Отсортировать по количеству книг по убыванию
+
+ WITH bor_stats AS(
+    SELECT bor.name,
+           bor.membership_type,
+           COUNT(l.borrower_id) AS bor_count_loans
+    FROM borrowers bor JOIN loans l ON bor.id = l.borrower_id
+    GROUP BY bor.id, bor.name
+ ),
+    avg_loans AS(
+        SELECT AVG(bor_count_loans) AS avg_loans
+        FROM bor_stats
+    )
+SELECT b.name,
+       b.membership_type,
+       b.bor_count_loans
+FROM bor_stats b, avg_loans a -- bor_stats b CROSS JOIN avg_loans s
+WHERE b.bor_count_loans > a.avg_loans
+ORDER BY 3 DESC;
 
 
 
