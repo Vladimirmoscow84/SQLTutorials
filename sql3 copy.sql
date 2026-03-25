@@ -448,12 +448,25 @@ ORDER BY b.loan_book DESC;
 -- Вывести: день недели, количество выдач
 -- Подсказка: DAYNAME(loan_date)
 
+SELECT DAYNAME(loan_date),
+       COUNT(*)
+       FROM loans
+       GROUP BY DAYNAME(loan_date)
+       ORDER BY COUNT(*) DESC
+       LIMIT 1;
+
 --задача 10b
 -- Найти самый популярный МЕСЯЦ для выдачи книг
 -- (в каком месяце чаще всего выдавали книги)
 -- Вывести: месяц (название), количество выдач
 -- Отсортировать по количеству выдач (убывание)
 -- Показать только самый популярный месяц
+SELECT MONTHNAME(loan_date),
+       COUNT(*)
+       FROM loans
+       GROUP BY MONTHNAME(loan_date)
+       ORDER BY 2 DESC
+       LIMIT 1;
 
 
 --Задача 11А (средняя)
