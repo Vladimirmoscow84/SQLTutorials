@@ -148,6 +148,57 @@ INSERT INTO loans (id, book_id, library_code, borrower_id, loan_date, return_dat
  * Вывести ТОП-10
  */
 
+no CTE:
+SELECT lib.name,
+       lib.city,
+       lib.manager,
+       b.genre,
+       COUNT(*) AS count_loans,
+       SUM(DATEDIFF(l.return_date, l.loan_date))AS all_days
+FROM loans l 
+JOIN libraries lib ON l.library_code = lib.code
+JOIN books b ON l.book_id = b.id
+WHERE l.return_date IS NOT NULL
+GROUP BY lib.name, lib.city, lib.manager, b.genre
+HAVING COUNT(*)>1
+       AND SUM(DATEDIFF(l.return_date, l.loan_date)) > (
+        SELECT
+            AVG(DATEDIFF(return_date, loan_date))
+            FROM loans
+            WHERE return_date IS NOT NULL
+       )
+ORDER BY all_days DESC, lib.name ASC, b.genre ASC
+LIMIT 10;
+
+CTE:
+WITH stats AS(
+    SELECT lib.name,
+           lib.city,
+           lib.manager,
+           b.genre,
+           COUNT(*) AS count_loans,
+           SUM(DATEDIFF(l.return_date, l.loan_date)) AS duration_loan
+    FROM loans l
+    JOIN libraries lib ON l.library_code = lib.code
+    JOIN books b ON l.book_id = b.id
+WHERE l.return_date IS NOT NULL
+GROUP BY lib.name, lib.city, lib.manager,b.genre
+),
+    avg_loan_days AS(
+        SELECT AVG(DATEDIFF(return_date, loan_date)) AS avg_loans
+        FROM loans
+        WHERE return_date IS NOT NULL
+    )
+SELECT name,
+       city,
+       manager,
+       genre,
+       count_loans,
+       duration_loan
+FROM stats CROSS JOIN avg_loan_days
+WHERE count_loans>1 AND duration_loan > avg_loans
+ORDER BY 5 DESC, 1 ASC, 4 ASC
+LIMIT 10;
 
 
 --задача 2 Легкая
@@ -511,6 +562,21 @@ SELECT
 -- Отсортировать по количеству книг (убывание)
 -- Показать только топ-5
 
+WITH reader_stats AS(
+    SELECT bor.id,
+            bor.name,
+            COUNT(*) AS count_loans,
+            MIN(loan_date) AS first_loan,
+            MAX(loan_date) AS last_loan
+    FROM borrowers bor
+    JOIN loans l ON bor.id = l.borrower_id
+    GROUP BY bor.id, bor.name
+)
+genre_stats AS(
+    SELECT l.borrower_id,
+            b.genre,
+
+)
 
 --Задача 12 (средняя)
 -- Найти топ-5 самых популярных книг
