@@ -420,15 +420,27 @@ WHERE l.counts > a.avg_counts
 ORDER BY l.counts DESC;
        
 
-
-
 --задача 9с средняя ЦТЕ
 -- Найти жанры книг, которые брали чаще среднего
 -- (чаще, чем в среднем берут книги любого жанра)
 -- Вывести: жанр, количество выдач этого жанра
 -- Отсортировать по количеству выдач (убывание)
 
-
+WITH book_stats AS(
+    SELECT b.genre,
+           COUNT(*) AS loan_book
+    FROM books b JOIN loans l On b.id = l.book_id
+    GROUP BY b.genre
+),
+ avgs AS(
+        SELECT AVG(loan_book) AS avg_loan
+        FROM book_stats
+    )
+SELECT b.genre,
+       b.loan_book
+FROM book_stats b CROSS JOIN avgs a
+WHERE b.loan_book > a.avg_loan
+ORDER BY b.loan_book DESC;
 
 
 --задача 10a
