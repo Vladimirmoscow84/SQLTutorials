@@ -484,6 +484,15 @@ SELECT MONTHNAME(loan_date),
 -- Отсортировать по количеству книг (убывание)
 -- Показать только топ-5
 
+SELECT
+       bor.name,
+       COUNT(*) AS count_loans,
+       MIN(loan_date) AS min_loan,
+       MAX(loan_date) AS max_loan
+    FROM borrowers bor JOIN loans l ON l.borrower_id = bor.id
+    GROUP BY bor.id, bor.name
+    ORDER BY count_loans DESC
+    LIMIT 5;
 
 
 --Задача 11Б (сложная)
