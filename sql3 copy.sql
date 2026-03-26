@@ -148,57 +148,57 @@ INSERT INTO loans (id, book_id, library_code, borrower_id, loan_date, return_dat
  * Вывести ТОП-10
  */
 
-no CTE:
+noCTE:
 SELECT lib.name,
        lib.city,
        lib.manager,
        b.genre,
        COUNT(*) AS count_loans,
-       SUM(DATEDIFF(l.return_date, l.loan_date))AS all_days
-FROM loans l 
-JOIN libraries lib ON l.library_code = lib.code
-JOIN books b ON l.book_id = b.id
+       SUM(DATEDIFF(l.return_date, l.loan_date)) AS duration
+FROM loans l
+    JOIN libraries lib ON l.library_code =lib.code
+    JOIN books b ON l.book_id = b.id
 WHERE l.return_date IS NOT NULL
 GROUP BY lib.name, lib.city, lib.manager, b.genre
-HAVING COUNT(*)>1
-       AND SUM(DATEDIFF(l.return_date, l.loan_date)) > (
-        SELECT
-            AVG(DATEDIFF(return_date, loan_date))
-            FROM loans
-            WHERE return_date IS NOT NULL
-       )
-ORDER BY all_days DESC, lib.name ASC, b.genre ASC
+HAVING COUNT(*) > 1 AND SUM(DATEDIFF(l.return_date, l.loan_date)) > (
+    SELECT AVG(DATEDIFF(return_date, loan_date))
+    FROM loans
+    WHERE return_date IS NOT NULL
+)
+ORDER BY duration DESC, name , genre 
 LIMIT 10;
 
 CTE:
-WITH stats AS(
+WITH avg_duration AS(
+    SELECT AVG(DATEDIFF(return_date, loan_date)) AS avg_days
+    FROM loans
+    WHERE return_date IS NOT NULL
+),
+stats AS(
     SELECT lib.name,
            lib.city,
            lib.manager,
            b.genre,
            COUNT(*) AS count_loans,
-           SUM(DATEDIFF(l.return_date, l.loan_date)) AS duration_loan
-    FROM loans l
-    JOIN libraries lib ON l.library_code = lib.code
-    JOIN books b ON l.book_id = b.id
-WHERE l.return_date IS NOT NULL
-GROUP BY lib.name, lib.city, lib.manager,b.genre
-),
-    avg_loan_days AS(
-        SELECT AVG(DATEDIFF(return_date, loan_date)) AS avg_loans
-        FROM loans
-        WHERE return_date IS NOT NULL
-    )
+           SUM(DATEDIFF(l.return_date, l.loan_date)) AS sum_loan_days
+    FROM loans l 
+        JOIN libraries lib ON l.library_code = lib.code
+        JOIN books b ON l.book_id = b.id
+    WHERE l.return_date IS NOT NULL
+    GROUP BY lib.name, lib.city, lib.manager, b.genre
+)
+
 SELECT name,
        city,
        manager,
        genre,
        count_loans,
-       duration_loan
-FROM stats CROSS JOIN avg_loan_days
-WHERE count_loans>1 AND duration_loan > avg_loans
-ORDER BY 5 DESC, 1 ASC, 4 ASC
+       sum_loan_days
+FROM stats CROSS JOIN avg_duration
+WHERE count_loans>1 AND sum_loan_days>avg_days
+ORDER BY sum_loan_days DESC, name ASC, genre ASC
 LIMIT 10;
+
 
 
 --задача 2 Легкая
