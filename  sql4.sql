@@ -160,6 +160,16 @@ WHERE DATEDIFF(a.event_date,
 -- 2 из 3 игроков имеют ≥2 дня → 2/3 ≈ 0.67 
 -- +-----------+
 
+WITH one_two AS(
+    SELECT player_id
+    FROM activity
+    GROUP BY player_id
+    HAVING MIN(event_date) <> MAX(event_date)
+)
+SELECT(
+    (SELECT COUNT(*) FROM one_two) * 1.0/
+    (SELECT COUNT(DISTINCT player_id) FROM activity)
+) AS fraction
 
 
 -- Задача экзамена 2:
@@ -186,30 +196,26 @@ WHERE DATEDIFF(a.event_date,
 -- | 2.00   |  -- (5 + 1 + 0) / 3 = 2.00
 -- +--------+
 
--- [ЛЕГКАЯ] Задача 1
--- - Найдите среднее количество игр (games_played), сыгранных игроками в их первый день входа.
--- - Округлите результат до 2 знаков после запятой.
-
 CTE:
-WITH first_activity AS(
+WITH first_day AS(
     SELECT player_id,
-    MIN(event_date) AS first_date
-    FROM activity
+        MIN(event_date) AS first_date
+    FROM activity 
     GROUP BY player_id
 )
 SELECT ROUND(AVG(a.games_played),2)
 FROM activity a
-JOIN first_activity f ON a.player_id = f.player_id AND a.event_date = f.first_date;
+JOIN first_day f ON a.player_id = f.player_id
+                AND f.first_date = a.event_date
 
-no CTE:
-SELECT
-ROUND(AVG(a.games_played),2)
+No CTE:
+SELECT ROUND(AVG(a.games_played),2)
 FROM activity a
-WHERE a.event_date = 
-(SELECT MIN(a1.event_date)
-FROM activity a1
-WHERE a.player_id = a1.player_id);
-
+WHERE a.event_date = (
+    SELECT MIN(a1.event_date)
+    FROM activity a1
+    WHERE a.player_id = a1.player_id
+);
 
 -- [ЛЕГКАЯ] Задача 2
 -- - Найдите количество уникальных игроков, которые заходили хотя бы один раз.
