@@ -29,6 +29,17 @@
 -- 2 из 3 игроков имеют ≥2 дня → 2/3 ≈ 0.67 
 -- +-----------+
 
+WITH more_days AS(
+    SELECT player_id
+    FROM activity
+    GROUP BY player_id
+    HAVING MIN(event_date)<>MAX(event_date)
+),
+SELECT(
+    (SELECT COUNT(*) FROM more_days) * 1.0/
+    (SELECT COUNT(DISTINCT player_id) FROM activity)
+) AS fraction
+
 
 
 -- Задача экзамена 2:
@@ -54,8 +65,26 @@
 -- +--------+
 -- | 2.00   |  -- (5 + 1 + 0) / 3 = 2.00
 -- +--------+
+CTE:
+WITH first_day AS(
+    SELECT player_id,
+           MIN(event_date) AS first_date
+    FROM activity
+    GROUP BY player_id
+)
+SELECT ROUND(AVG(a.games_played),2)
+FROM activity a
+JOIN first_day f ON a.player_id = f.player_id
+                 AND a.event_date = f.event_date
 
-
+NO CTE:
+SELECT ROUND(AVG(a.games_plaed),2)
+FROM activity a
+WHERE a.event_date = (
+    SELECT MIN(a1.event_date)
+    FROM activity a1
+    WHERE a.player_id = a1.player_id
+);
 
 -- Таблица: books
 -- Первичный ключ: id
@@ -133,3 +162,4 @@
  * - по жанру по возрастанию
  * Вывести ТОП-10
  */
+

@@ -301,6 +301,8 @@ FROM
         activity.player_id = first_date.player_id AND
         activity.event_date = first_date.fed
 
+
+
 SELECT ROUND(AVG(fgp),2) AS avg
 FROM (
     SELECT 
