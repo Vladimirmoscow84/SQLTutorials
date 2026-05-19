@@ -52,18 +52,20 @@ WITH account_list AS(
     FROM transactions
 ),
 balances AS(
-    account_id,
+   SELECT account_id,
     SUM(
         CASE 
-            WHEN type = 'deposite' THEN amount
-            WHEN type = 'wthdraw' THEN -amount
+            WHEN type = 'deposit' THEN amount
+            WHEN type = 'withdraw' THEN -amount
             ELSE 0
+        END
     ) AS balance
+    FROM transactions
     WHERE transaction_date<='2022-12-31'
     GROUP BY account_id
 )
 SELECT a.account_id,
-       b.balance
+       COALESCE(b.balance,0) As balance
 FROM account_list a
-JOIN balances b ON a.account_id = b.account_id
+LEFT JOIN balances b ON a.account_id = b.account_id
 ORDER BY 1;
