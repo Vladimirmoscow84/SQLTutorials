@@ -46,3 +46,24 @@
 -- +------------+---------+
 --
 -- Решение
+
+WITH account_list AS(
+    SELECT DISTINCT(account_id)
+    FROM transactions
+),
+balances AS(
+    account_id,
+    SUM(
+        CASE 
+            WHEN type = 'deposite' THEN amount
+            WHEN type = 'wthdraw' THEN -amount
+            ELSE 0
+    ) AS balance
+    WHERE transaction_date<='2022-12-31'
+    GROUP BY account_id
+)
+SELECT a.account_id,
+       b.balance
+FROM account_list a
+JOIN balances b ON a.account_id = b.account_id
+ORDER BY 1;
