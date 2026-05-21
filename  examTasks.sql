@@ -29,6 +29,20 @@
 -- 2 из 3 игроков имеют ≥2 дня → 2/3 ≈ 0.67 
 -- +-----------+
 
+WITH all_days AS(
+    SELECT COUNT(DISTINCT player_id) AS count_players
+    FROM activity
+),
+ first_last AS(
+    SELECT COUNT(*) AS count_first_last
+    FROM activity
+    GROUP BY player_id
+    HAVING MIN(event_date)<>MAX(event_date)
+ )
+
+ SELECT 
+    ROUND(ad.count_first_last * 1.0/fl.count_players, 2) AS fraction
+    FROM all_days ad CROSS JOIN first_last fl
 
 
 
@@ -55,26 +69,19 @@
 -- +--------+
 -- | 2.00   |  -- (5 + 1 + 0) / 3 = 2.00
 -- +--------+
-CTE:
+
 WITH first_day AS(
     SELECT player_id,
            MIN(event_date) AS first_date
     FROM activity
     GROUP BY player_id
 )
-SELECT ROUND(AVG(a.games_played),2)
-FROM activity a
-JOIN first_day f ON a.player_id = f.player_id
-                 AND a.event_date = f.event_date
 
-NO CTE:
-SELECT ROUND(AVG(a.games_plaed),2)
+SELECT ROUND(AVG(a.games_played),2) AS avg
 FROM activity a
-WHERE a.event_date = (
-    SELECT MIN(a1.event_date)
-    FROM activity a1
-    WHERE a.player_id = a1.player_id
-);
+JOIN first_day fd ON a.player_id = fd.player_id
+        AND a.event_date = fd.first_date
+
 
 
 Задача A1 (средняя)
@@ -169,6 +176,38 @@ WHERE a.event_date = (
  * Вывести ТОП-10
  */
 
+WITH avg_date AS(
+    SELECT AVG(DATEDIFF(return_date, loan_date)) AS avg_loans
+    FROM loans
+    WHERE return_date IS NOT NULL
+),
+ stats AS (
+        SELECT lib.name,
+            lib.city,
+            lib.manager,
+            b.genre,
+            COUNT(*) AS count_loans,
+            SUM(DATEDIFF(l.return_date, l.loan_date)) AS all_days
+    FROM loans l
+    JOIN libraries lib ON l.library_code = lib.code
+    JOIN books b ON l.book_id = b.id
+    WHERE l.return_date IS NOT NULL
+    GROUP BY lib.name, lib.city, lib.manager, b.genre
+    )
+
+    SELECT name,
+           city,
+           manager,
+           genre,
+           count_loans,
+           all_days
+    FROM stats 
+    CROSS JOIN avg_date
+    WHERE count_loans>1 AND all_days>avg_loans
+    ORDER BY all_days DESC, name ASC, genre ASC
+    LIMIT 10;
+
+
 
 
 
@@ -221,4 +260,24 @@ WHERE a.event_date = (
 -- +------------+---------+
 --
 -- Решение
-
+    WITH accounts AS(
+        SELECT DISTINCT account_id
+        FROM transactions
+    ),
+     balances AS (
+        SELECT account_id,
+        SUM(
+            CASE 
+                WHEN type = 'deposit' THEN amount
+                WHEN type = 'withdraw' THEN -amount
+            END
+        ) AS balance
+        FROM transactions
+        WHERE transaction_date <='2022-12-31'
+        GROUP BY account_id
+     )
+     SELECT a.account_id,
+            COALESCE (b.balance, 0)
+    FROM accounts a
+    LEFT JOIN balances b USING(account_id)
+    ORDER BY 1 ASC;

@@ -303,10 +303,3 @@ FROM
 
 
 
-SELECT ROUND(AVG(fgp),2) AS avg
-FROM (
-    SELECT 
-        DISTINCT player_id,
-        FIRST_VALUE(games_played) OVER (PARTITION BY player_id ORDER BY event_date) AS fgp
-    FROM activity
-) temp
